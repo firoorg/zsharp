@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zsharp.ServiceModel", "Zsha
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zsharp.ServiceModel.Tests", "Zsharp.ServiceModel.Tests\Zsharp.ServiceModel.Tests.csproj", "{00BD2CB9-E497-400C-824B-5A12A567F8C7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zsharp.Elysium", "Zsharp.Elysium\Zsharp.Elysium.csproj", "{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zsharp.Elysium.Tests", "Zsharp.Elysium.Tests\Zsharp.Elysium.Tests.csproj", "{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}"
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,5 +76,29 @@ Global
 		{00BD2CB9-E497-400C-824B-5A12A567F8C7}.Release|x64.Build.0 = Release|Any CPU
 		{00BD2CB9-E497-400C-824B-5A12A567F8C7}.Release|x86.ActiveCfg = Release|Any CPU
 		{00BD2CB9-E497-400C-824B-5A12A567F8C7}.Release|x86.Build.0 = Release|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Debug|x64.Build.0 = Debug|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Debug|x86.Build.0 = Debug|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Release|x64.ActiveCfg = Release|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Release|x64.Build.0 = Release|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Release|x86.ActiveCfg = Release|Any CPU
+		{CDA33CD3-5AD6-486B-8AA3-7C7D16BFC2EF}.Release|x86.Build.0 = Release|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Debug|x64.Build.0 = Debug|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Debug|x86.Build.0 = Debug|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Release|x64.ActiveCfg = Release|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Release|x64.Build.0 = Release|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Release|x86.ActiveCfg = Release|Any CPU
+		{D7D2AC89-0AC4-4A62-934B-FA6D9BFF9FCC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
