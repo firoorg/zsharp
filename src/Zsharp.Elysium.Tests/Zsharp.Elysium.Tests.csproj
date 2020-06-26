@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Zsharp.Elysium\Zsharp.Elysium.csproj" />
+    <ProjectReference Include="..\Zsharp.Testing\Zsharp.Testing.csproj" />
   </ItemGroup>
 
 </Project>

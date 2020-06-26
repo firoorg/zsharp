@@ -2,15 +2,37 @@ namespace Zsharp.Elysium
 {
     public sealed class Property
     {
-        public Property(PropertyId id, TokenType type)
+        public Property(
+            PropertyId id,
+            string name,
+            string category,
+            string subcategory,
+            string websiteUrl,
+            string description,
+            TokenType type)
         {
             this.Id = id;
+            this.Name = name;
+            this.Category = category;
+            this.Subcategory = subcategory;
+            this.WebsiteUrl = websiteUrl;
+            this.Description = description;
             this.Type = type;
         }
 
+        public string Category { get; }
+
+        public string Description { get; }
+
         public PropertyId Id { get; }
 
+        public string Name { get; }
+
+        public string Subcategory { get; }
+
         public TokenType Type { get; }
+
+        public string WebsiteUrl { get; }
 
         public override bool Equals(object? obj)
         {
