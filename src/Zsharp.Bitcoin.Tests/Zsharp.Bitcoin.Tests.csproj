@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="Moq" Version="4.14.5" />
     <PackageReference Include="NBitcoin" Version="5.0.43" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
@@ -15,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Zsharp.Elysium\Zsharp.Elysium.csproj" />
+    <ProjectReference Include="..\Zsharp.Bitcoin\Zsharp.Bitcoin.csproj" />
     <ProjectReference Include="..\Zsharp.Testing\Zsharp.Testing.csproj" />
   </ItemGroup>
 
