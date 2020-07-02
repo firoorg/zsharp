@@ -7,6 +7,8 @@ namespace Zsharp.Elysium
     [TypeConverter(typeof(TokenAmountConverter))]
     public readonly struct TokenAmount : IEquatable<TokenAmount>
     {
+        public static readonly TokenAmount Zero = new TokenAmount(0);
+
         public TokenAmount(long value)
         {
             this.Value = value;
