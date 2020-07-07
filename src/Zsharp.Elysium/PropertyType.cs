@@ -2,7 +2,7 @@ namespace Zsharp.Elysium
 {
     public enum PropertyType
     {
-        Production,
-        Test,
+        Production = 1,
+        Test = 2,
     }
 }

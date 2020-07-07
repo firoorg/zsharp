@@ -6,9 +6,9 @@ namespace Zsharp.Rpc.Client
     using NBitcoin;
     using Zsharp.Elysium;
 
-    public interface IPropertyManagementClient : IAsyncDisposable
+    public interface IPropertyManagementClient : IAsyncDisposable, IDisposable
     {
-        Task<NBitcoin.Transaction> CreateManagedAsync(
+        Task<string> CreateManagedAsync(
             BitcoinAddress owner,
             PropertyType type,
             TokenType tokenType,
@@ -20,7 +20,7 @@ namespace Zsharp.Rpc.Client
             string description,
             CancellationToken cancellationToken = default);
 
-        Task<NBitcoin.Transaction> GrantTokensAsync(
+        Task<string> GrantTokensAsync(
             Property property,
             BitcoinAddress from,
             BitcoinAddress? to,
@@ -28,7 +28,7 @@ namespace Zsharp.Rpc.Client
             string? note,
             CancellationToken cancellationToken = default);
 
-        Task<NBitcoin.Transaction> SendTokensAsync(
+        Task<string> SendTokensAsync(
             Property property,
             BitcoinAddress from,
             BitcoinAddress to,

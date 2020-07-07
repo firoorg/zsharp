@@ -5,7 +5,7 @@ namespace Zsharp.Rpc.Client
     using System.Threading.Tasks;
     using NBitcoin;
 
-    public interface IWalletClient : IAsyncDisposable
+    public interface IWalletClient : IAsyncDisposable, IDisposable
     {
         Task<BitcoinAddress> GetNewAddressAsync(CancellationToken cancellationToken = default);
 

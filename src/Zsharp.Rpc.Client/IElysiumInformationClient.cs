@@ -7,16 +7,16 @@ namespace Zsharp.Rpc.Client
     using NBitcoin;
     using Zsharp.Elysium;
 
-    public interface IElysiumInformationClient : IAsyncDisposable
+    public interface IElysiumInformationClient : IAsyncDisposable, IDisposable
     {
-        Task<ElysiumBalance?> GetBalanceAsync(
+        Task<ElysiumBalance> GetBalanceAsync(
             BitcoinAddress address,
             Property property,
             CancellationToken cancellationToken = default);
 
-        Task<TokenGrants?> GetGrantsAsync(Property property, CancellationToken cancellationToken = default);
+        Task<TokenGrants> GetGrantsAsync(Property property, CancellationToken cancellationToken = default);
 
-        Task<ReadOnlyMemory<byte>?> GetPayloadAsync(uint256 transaction, CancellationToken cancellationToken = default);
+        Task<ArraySegment<byte>?> GetPayloadAsync(uint256 transaction, CancellationToken cancellationToken = default);
 
         Task<ElysiumTransaction?> GetTransactionAsync(uint256 hash, CancellationToken cancellationToken = default);
 

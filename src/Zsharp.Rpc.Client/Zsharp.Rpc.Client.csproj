@@ -5,11 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NBitcoin" Version="5.0.40" />
+    <PackageReference Include="NBitcoin" Version="5.0.43" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Zsharp.Elysium\Zsharp.Elysium.csproj" />
+    <ProjectReference Include="..\Zsharp.Bitcoin\Zsharp.Bitcoin.csproj" />
   </ItemGroup>
 
 </Project>

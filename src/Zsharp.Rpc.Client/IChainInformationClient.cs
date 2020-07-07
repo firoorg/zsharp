@@ -6,7 +6,7 @@ namespace Zsharp.Rpc.Client
     using NBitcoin;
     using NBitcoin.RPC;
 
-    public interface IChainInformationClient : IAsyncDisposable
+    public interface IChainInformationClient : IAsyncDisposable, IDisposable
     {
         Task<Block?> GetBlockAsync(uint256 hash, CancellationToken cancellationToken = default);
 

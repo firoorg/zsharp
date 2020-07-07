@@ -5,7 +5,7 @@ namespace Zsharp.Rpc.Client
     using System.Threading.Tasks;
     using NBitcoin;
 
-    public interface ITransactionManagementClient : IAsyncDisposable
+    public interface ITransactionManagementClient : IAsyncDisposable, IDisposable
     {
         Task<uint256> PublishAsync(
             Transaction transaction,

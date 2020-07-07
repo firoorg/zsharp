@@ -4,7 +4,7 @@ namespace Zsharp.Rpc.Client
     using System.Threading;
     using System.Threading.Tasks;
 
-    public interface IRpcClientFactory : IAsyncDisposable
+    public interface IRpcClientFactory : IAsyncDisposable, IDisposable
     {
         ValueTask<IChainInformationClient> CreateChainInformationClientAsync(
             CancellationToken cancellationToken = default);
