@@ -21,20 +21,31 @@ namespace Zsharp.Elysium
 
         public Transaction Deserialize(BitcoinAddress? sender, BitcoinAddress? receiver, ReadOnlySpan<byte> data)
         {
-            if (data.Length < 4)
-            {
-                throw new TransactionSerializationException("Not enough data.");
-            }
+            ushort version, type;
 
-            var version = BinaryPrimitives.ReadUInt16BigEndian(data.Slice(0));
-            var type = BinaryPrimitives.ReadUInt16BigEndian(data.Slice(2));
+            try
+            {
+                version = BinaryPrimitives.ReadUInt16BigEndian(data.Slice(0));
+                type = BinaryPrimitives.ReadUInt16BigEndian(data.Slice(2));
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                throw new ArgumentException("The data is not enough.", nameof(data), ex);
+            }
 
             if (!this.serializers.TryGetValue(type, out var serializer))
             {
                 throw new TransactionSerializationException("Unknow transaction.");
             }
 
-            return serializer.Deserialize(sender, receiver, data.Slice(4), version);
+            try
+            {
+                return serializer.Deserialize(sender, receiver, data.Slice(4), version);
+            }
+            catch (ArgumentException ex) when (ex.ParamName == "version")
+            {
+                throw new TransactionSerializationException("Unknow version.", ex);
+            }
         }
 
         public ArraySegment<byte> Serialize(Transaction transaction)
@@ -50,8 +61,8 @@ namespace Zsharp.Elysium
             {
                 var output = data.Memory.Span.Slice(0, 4);
 
-                BinaryPrimitives.WriteUInt16BigEndian(output.Slice(0), (ushort)transaction.Version);
-                BinaryPrimitives.WriteUInt16BigEndian(output.Slice(2), (ushort)transaction.Id);
+                BinaryPrimitives.WriteUInt16BigEndian(output.Slice(0), Convert.ToUInt16(transaction.Version));
+                BinaryPrimitives.WriteUInt16BigEndian(output.Slice(2), Convert.ToUInt16(transaction.Id));
 
                 buffer.Write(output);
             }

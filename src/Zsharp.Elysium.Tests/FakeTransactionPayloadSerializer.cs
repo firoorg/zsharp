@@ -5,7 +5,7 @@ namespace Zsharp.Elysium.Tests
     using Moq;
     using NBitcoin;
 
-    sealed class FakeTransactionPayloadSerializer : ITransactionPayloadSerializer
+    sealed class FakeTransactionPayloadSerializer : TransactionPayloadSerializer
     {
         public FakeTransactionPayloadSerializer(int transactionId)
         {
@@ -18,9 +18,9 @@ namespace Zsharp.Elysium.Tests
 
         public Mock<Action<MemoryStream, Elysium.Transaction>> StubbedSerialize { get; }
 
-        public int TransactionId { get; }
+        public override int TransactionId { get; }
 
-        public Elysium.Transaction Deserialize(
+        public override Elysium.Transaction Deserialize(
             BitcoinAddress? sender,
             BitcoinAddress? receiver,
             ReadOnlySpan<byte> data,
@@ -29,7 +29,7 @@ namespace Zsharp.Elysium.Tests
             return this.StubbedDeserialize.Object(sender, receiver, data.ToArray(), version);
         }
 
-        public void Serialize(MemoryStream output, Elysium.Transaction transaction)
+        public override void Serialize(MemoryStream output, Elysium.Transaction transaction)
         {
             this.StubbedSerialize.Object(output, transaction);
         }

@@ -31,30 +31,5 @@ namespace Zsharp.Elysium.Tests
 
             return data;
         }
-
-        public static void WritePropertyId(Stream output, PropertyId id) => WritePropertyId(output, id.Value);
-
-        public static void WritePropertyId(Stream output, long id)
-        {
-            using (var buffer = MemoryPool<byte>.Shared.Rent(4))
-            {
-                var data = buffer.Memory.Span.Slice(0, 4);
-                BinaryPrimitives.WriteUInt32BigEndian(data, Convert.ToUInt32(id));
-                output.Write(data);
-            }
-        }
-
-        public static void WritePropertyAmount(Stream output, TokenAmount amount) =>
-            WritePropertyAmount(output, amount.Value);
-
-        public static void WritePropertyAmount(Stream output, long amount)
-        {
-            using (var buffer = MemoryPool<byte>.Shared.Rent(8))
-            {
-                var data = buffer.Memory.Span.Slice(0, 8);
-                BinaryPrimitives.WriteInt64BigEndian(data, amount);
-                output.Write(data);
-            }
-        }
     }
 }

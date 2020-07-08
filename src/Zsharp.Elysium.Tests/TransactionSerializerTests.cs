@@ -28,9 +28,30 @@ namespace Zsharp.Elysium.Tests
         {
             var data = new byte[length];
 
-            var ex = Assert.Throws<TransactionSerializationException>(() => this.subject.Deserialize(null, null, data));
+            Assert.Throws<ArgumentException>("data", () => this.subject.Deserialize(null, null, data));
+        }
 
-            Assert.Equal("Not enough data.", ex.Message);
+        [Fact]
+        public void Deserialize_NotEnoughPayload_ShouldThrow()
+        {
+            // Arrange.
+            var data = new byte[4];
+
+            this.payload1.StubbedDeserialize
+                .Setup(f => f(
+                    It.IsAny<BitcoinAddress?>(),
+                    It.IsAny<BitcoinAddress?>(),
+                    It.IsAny<byte[]>(),
+                    It.IsAny<int>()))
+                .Throws(new ArgumentException("", "data"));
+
+            // Act.
+            Assert.Throws<ArgumentException>("data", () => this.subject.Deserialize(null, null, data));
+
+            // Assert.
+            this.payload1.StubbedDeserialize.Verify(
+                f => f(null, null, new byte[0], It.IsAny<int>()),
+                Times.Once());
         }
 
         [Fact]
@@ -49,6 +70,32 @@ namespace Zsharp.Elysium.Tests
 
             // Assert.
             Assert.Equal("Unknow transaction.", ex.Message);
+        }
+
+        [Fact]
+        public void Deserialize_WithUnsupportedVersion_ShouldThrow()
+        {
+            // Arrange.
+            byte[] data;
+
+            using (var stream = RawTransaction.Create(0, 1))
+            {
+                data = stream.ToArray();
+            }
+
+            this.payload1.StubbedDeserialize
+                .Setup(f => f(It.IsAny<BitcoinAddress?>(), It.IsAny<BitcoinAddress?>(), It.IsAny<byte[]>(), 1))
+                .Throws(new ArgumentOutOfRangeException("version"));
+
+            // Act.
+            var ex = Assert.Throws<TransactionSerializationException>(() => this.subject.Deserialize(null, null, data));
+
+            // Assert.
+            Assert.Equal("Unknow version.", ex.Message);
+
+            this.payload1.StubbedDeserialize.Verify(
+                f => f(null, null, new byte[0], 1),
+                Times.Once());
         }
 
         [Theory]
