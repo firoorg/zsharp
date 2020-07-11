@@ -28,27 +28,18 @@ namespace Zsharp.Elysium.Tests.TransactionSerializers
         [Fact]
         public void Deserialize_WithNullSender_ShouldThrow()
         {
-            Assert.Throws<ArgumentNullException>("sender", () => this.Subject.Deserialize(null, null, new byte[0], 0));
+            Assert.Throws<ArgumentNullException>(
+                "sender",
+                () =>
+                {
+                    var reader = SerializationTesting.CreateReader(new byte[0]);
+                    this.Subject.Deserialize(null, null, ref reader, 0);
+                });
         }
-
-        protected override IEnumerable<(int Version, byte[] Payload)> CreateIncompleteData() => new[]
-        {
-            (0, new byte[] {}),
-            (0, new byte[] { 0x00 }),
-            (0, new byte[] { 0x00, 0x00 }),
-            (0, new byte[] { 0x00, 0x00, 0x00 }),
-            (0, new byte[] { 0x00, 0x00, 0x00, 0x01 }),
-            (0, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00 }),
-            (0, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00 }),
-            (0, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00 }),
-            (0, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00 }),
-            (0, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 }),
-            (0, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }),
-            (0, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }),
-        };
 
         protected override IEnumerable<(int Version, byte[] Payload, string ExpectedError)> CreateInvalidData() => new[]
         {
+            (0, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }, "Invalid property identifier."),
             (0, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, "Invalid amount."),
             (0, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }, "Invalid amount."),
             (0, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, "Invalid amount."),
@@ -61,12 +52,6 @@ namespace Zsharp.Elysium.Tests.TransactionSerializers
             (new SimpleSendV0(TestAddress.Regtest1, null, new PropertyId(PropertyId.MaxValue), new TokenAmount(1)), new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }),
             (new SimpleSendV0(TestAddress.Regtest1, null, new PropertyId(PropertyId.MaxValue), new TokenAmount(long.MaxValue)), new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }),
         };
-
-        protected override Elysium.Transaction CreateUnsupportedVersion() => new SimpleSendV99(
-            TestAddress.Regtest1,
-            null,
-            new PropertyId(1),
-            new TokenAmount(1));
 
         protected override IEnumerable<(int Version, byte[] Payload, Action<Elysium.Transaction> Assert)> CreateValidData() => new (int, byte[], Action<Elysium.Transaction>)[]
         {
@@ -99,19 +84,5 @@ namespace Zsharp.Elysium.Tests.TransactionSerializers
                 Assert.Equal(PropertyId.MaxValue, tx.Property.Value);
             }),
         };
-
-        sealed class SimpleSendV99 : SimpleSendV0
-        {
-            public SimpleSendV99(
-                BitcoinAddress sender,
-                BitcoinAddress? receiver,
-                PropertyId property,
-                TokenAmount amount)
-                : base(sender, receiver, property, amount)
-            {
-            }
-
-            public override int Version => 99;
-        }
     }
 }

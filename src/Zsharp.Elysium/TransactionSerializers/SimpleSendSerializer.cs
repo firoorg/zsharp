@@ -2,7 +2,6 @@ namespace Zsharp.Elysium.TransactionSerializers
 {
     using System;
     using System.Buffers;
-    using System.IO;
     using NBitcoin;
     using Zsharp.Elysium.Transactions;
 
@@ -13,7 +12,7 @@ namespace Zsharp.Elysium.TransactionSerializers
         public override Elysium.Transaction Deserialize(
             BitcoinAddress? sender,
             BitcoinAddress? receiver,
-            ReadOnlySpan<byte> data,
+            ref SequenceReader<byte> reader,
             int version)
         {
             if (ReferenceEquals(sender, null))
@@ -22,58 +21,40 @@ namespace Zsharp.Elysium.TransactionSerializers
             }
 
             // Deserialize payload.
-            PropertyId property;
-            TokenAmount amount;
+            var property = DeserializePropertyId(ref reader);
+            var amount = DeserializeTokenAmount(ref reader);
 
-            switch (version)
+            if (property == null)
             {
-                case 0:
-                    property = DeserializePropertyId(data.Slice(0));
-                    amount = DeserializeTokenAmount(data.Slice(4));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(version));
+                throw new TransactionSerializationException("Invalid property identifier.");
             }
 
             // Construct domain object.
             try
             {
-                switch (version)
+                return version switch
                 {
-                    case 0:
-                        return new SimpleSendV0(sender, receiver, property, amount);
-                    default:
-                        throw new NotImplementedException($"Version {version} does not implemented.");
-                }
+                    0 => new SimpleSendV0(sender, receiver, property, amount),
+                    _ => throw new ArgumentOutOfRangeException(nameof(version)),
+                };
             }
-            catch (ArgumentOutOfRangeException ex)
+            catch (ArgumentOutOfRangeException ex) when (ex.ParamName == "amount")
             {
                 throw new TransactionSerializationException("Invalid amount.", ex);
             }
         }
 
-        public override void Serialize(MemoryStream output, Elysium.Transaction transaction)
+        public override void Serialize(IBufferWriter<byte> writer, Elysium.Transaction transaction)
         {
-            switch (transaction)
-            {
-                case SimpleSendV0 tx when tx.Version == 0:
-                    using (var memory = MemoryPool<byte>.Shared.Rent(12))
-                    {
-                        var buffer = memory.Memory.Span.Slice(0, 12);
-                        WriteV0(buffer, tx);
-                        output.Write(buffer);
-                    }
+            var tx = transaction as SimpleSendV0;
 
-                    break;
-                default:
-                    throw new ArgumentException("The transaction is not supported.", nameof(transaction));
+            if (tx == null)
+            {
+                throw new ArgumentException("The transaction is not supported.", nameof(transaction));
             }
 
-            void WriteV0(Span<byte> dest, SimpleSendV0 tx)
-            {
-                SerializePropertyId(dest.Slice(0), tx.Property);
-                SerializeTokenAmount(dest.Slice(4), tx.Amount);
-            }
+            SerializePropertyId(writer, tx.Property);
+            SerializeTokenAmount(writer, tx.Amount);
         }
     }
 }

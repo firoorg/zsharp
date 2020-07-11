@@ -1,6 +1,7 @@
 namespace Zsharp.Rpc.Client
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace Zsharp.Rpc.Client
 
         Task<TokenGrants> GetGrantsAsync(Property property, CancellationToken cancellationToken = default);
 
-        Task<ArraySegment<byte>?> GetPayloadAsync(uint256 transaction, CancellationToken cancellationToken = default);
+        Task<ReadOnlySequence<byte>?> GetPayloadAsync(uint256 transaction, CancellationToken cancellationToken = default);
 
         Task<ElysiumTransaction?> GetTransactionAsync(uint256 hash, CancellationToken cancellationToken = default);
 

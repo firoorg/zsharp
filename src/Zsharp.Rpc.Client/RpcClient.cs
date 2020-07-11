@@ -1,6 +1,7 @@
 namespace Zsharp.Rpc.Client
 {
     using System;
+    using System.Buffers;
     using System.Threading;
     using System.Threading.Tasks;
     using NBitcoin;
@@ -60,7 +61,7 @@ namespace Zsharp.Rpc.Client
         {
             // Get Elysium's payload.
             ElysiumTransaction? info;
-            ArraySegment<byte>? payload;
+            ReadOnlySequence<byte>? payload;
 
             await using (var client = await this.Factory.CreateElysiumInformationClientAsync(cancellationToken))
             {
@@ -89,10 +90,17 @@ namespace Zsharp.Rpc.Client
                 payload = await client.GetPayloadAsync(tx.GetHash(), cancellationToken);
             }
 
-            return this.Factory.ElysiumSerializer.Deserialize(
-                info.SendingAddress,
-                info.ReferenceAddress,
-                payload.Value.ToArray());
+            return this.DeserializeElysiumTransaction(info.SendingAddress, info.ReferenceAddress, payload.Value);
+        }
+
+        Elysium.Transaction DeserializeElysiumTransaction(
+            BitcoinAddress? sender,
+            BitcoinAddress? receiver,
+            in ReadOnlySequence<byte> data)
+        {
+            var reader = new SequenceReader<byte>(data);
+
+            return this.Factory.ElysiumSerializer.Deserialize(sender, receiver, ref reader);
         }
     }
 }

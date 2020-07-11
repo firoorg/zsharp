@@ -1,8 +1,8 @@
 namespace Zsharp.Elysium.Tests.TransactionSerializers
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using NBitcoin;
     using Xunit;
@@ -24,13 +24,9 @@ namespace Zsharp.Elysium.Tests.TransactionSerializers
 
         protected virtual IEnumerable<BitcoinAddress?> ValidSenders { get; } = new[] { TestAddress.Regtest1 };
 
-        protected abstract IEnumerable<(int Version, byte[] Payload)> CreateIncompleteData();
-
         protected abstract IEnumerable<(int Version, byte[] Payload, string ExpectedError)> CreateInvalidData();
 
         protected abstract IEnumerable<(Elysium.Transaction Transaction, byte[] Expected)> CreateSupportedVersions();
-
-        protected abstract Elysium.Transaction CreateUnsupportedVersion();
 
         protected abstract IEnumerable<(int Version, byte[] Payload, Action<Elysium.Transaction> Assert)> CreateValidData();
 
@@ -43,28 +39,18 @@ namespace Zsharp.Elysium.Tests.TransactionSerializers
         [Fact]
         public void Deserialize_WithInvalidVersion_ShouldThrow()
         {
+            var payload = this.CreateValidData().First().Payload;
+
             Assert.Throws<ArgumentOutOfRangeException>(
                 "version",
-                () => this.Subject.Deserialize(
-                    this.ValidSenders.First(),
-                    this.ValidReceivers.First(),
-                    new byte[0],
-                    this.InvalidVersion));
-        }
+                () =>
+                {
+                    var sender = this.ValidSenders.First();
+                    var receiver = this.ValidReceivers.First();
+                    var reader = SerializationTesting.CreateReader(payload);
 
-        [Fact]
-        public void Deserialize_WithIncompleteData_ShouldThrow()
-        {
-            foreach (var data in this.CreateIncompleteData())
-            {
-                Assert.Throws<ArgumentException>(
-                    "data",
-                    () => this.Subject.Deserialize(
-                        this.ValidSenders.First(),
-                        this.ValidReceivers.First(),
-                        data.Payload,
-                        data.Version));
-            }
+                    this.Subject.Deserialize(sender, receiver, ref reader, this.InvalidVersion);
+                });
         }
 
         [Fact]
@@ -74,11 +60,14 @@ namespace Zsharp.Elysium.Tests.TransactionSerializers
             {
                 // Act.
                 var ex = Assert.Throws<TransactionSerializationException>(
-                    () => this.Subject.Deserialize(
-                        this.ValidSenders.First(),
-                        this.ValidReceivers.First(),
-                        data.Payload,
-                        data.Version));
+                    () =>
+                    {
+                        var sender = this.ValidSenders.First();
+                        var receiver = this.ValidReceivers.First();
+                        var reader = SerializationTesting.CreateReader(data.Payload);
+
+                        this.Subject.Deserialize(sender, receiver, ref reader, data.Version);
+                    });
 
                 // Assert.
                 Assert.Equal(data.ExpectedError, ex.Message);
@@ -92,8 +81,10 @@ namespace Zsharp.Elysium.Tests.TransactionSerializers
             foreach (var sender in this.ValidSenders)
             foreach (var receiver in this.ValidReceivers)
             {
-                var result = this.Subject.Deserialize(sender, receiver, data.Payload, data.Version);
+                var reader = SerializationTesting.CreateReader(data.Payload);
+                var result = this.Subject.Deserialize(sender, receiver, ref reader, data.Version);
 
+                Assert.Equal(0, reader.Remaining);
                 Assert.Equal(this.TransactionId, result.Id);
                 Assert.Equal(receiver, result.Receiver);
                 Assert.Equal(sender, result.Sender);
@@ -107,33 +98,21 @@ namespace Zsharp.Elysium.Tests.TransactionSerializers
         public void Serialize_WithOtherTransaction_ShouldThrow()
         {
             var tx = new FakeTransaction(null, null);
+            var writer = new ArrayBufferWriter<byte>();
 
-            using (var output = new MemoryStream())
-            {
-                Assert.Throws<ArgumentException>("transaction", () => this.Subject.Serialize(output, tx));
-            }
-        }
-
-        [Fact]
-        public void Serialize_WithUnsupportedVersion_ShouldThrow()
-        {
-            var tx = this.CreateUnsupportedVersion();
-
-            using (var output = new MemoryStream())
-            {
-                Assert.Throws<ArgumentException>("transaction", () => this.Subject.Serialize(output, tx));
-            }
+            Assert.Throws<ArgumentException>("transaction", () => this.Subject.Serialize(writer, tx));
         }
 
         [Fact]
         public void Serialize_WithSupportedVersion_ShouldSerializeCorrectly()
         {
             foreach (var data in this.CreateSupportedVersions())
-            using (var output = new MemoryStream())
             {
-                this.Subject.Serialize(output, data.Transaction);
+                var writer = new ArrayBufferWriter<byte>();
 
-                Assert.Equal(data.Expected, output.ToArray());
+                this.Subject.Serialize(writer, data.Transaction);
+
+                Assert.Equal(data.Expected, writer.WrittenSpan.ToArray());
             }
         }
     }

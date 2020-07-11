@@ -4,7 +4,6 @@ namespace Zsharp.Elysium
     using System.Buffers;
     using System.Buffers.Binary;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using NBitcoin;
 
@@ -19,18 +18,26 @@ namespace Zsharp.Elysium
             this.serializers = serializers.ToDictionary(s => s.TransactionId);
         }
 
-        public Transaction Deserialize(BitcoinAddress? sender, BitcoinAddress? receiver, ReadOnlySpan<byte> data)
+        public Transaction Deserialize(
+            BitcoinAddress? sender,
+            BitcoinAddress? receiver,
+            ref SequenceReader<byte> reader)
         {
             ushort version, type;
 
-            try
+            using (var memory = MemoryPool<byte>.Shared.Rent(4))
             {
-                version = BinaryPrimitives.ReadUInt16BigEndian(data.Slice(0));
-                type = BinaryPrimitives.ReadUInt16BigEndian(data.Slice(2));
-            }
-            catch (ArgumentOutOfRangeException ex)
-            {
-                throw new ArgumentException("The data is not enough.", nameof(data), ex);
+                var buffer = memory.Memory.Span.Slice(0, 4);
+
+                if (!reader.TryCopyTo(buffer))
+                {
+                    throw new TransactionSerializationException("Incomplete data.");
+                }
+
+                reader.Advance(4);
+
+                version = BinaryPrimitives.ReadUInt16BigEndian(buffer.Slice(0));
+                type = BinaryPrimitives.ReadUInt16BigEndian(buffer.Slice(2));
             }
 
             if (!this.serializers.TryGetValue(type, out var serializer))
@@ -40,7 +47,7 @@ namespace Zsharp.Elysium
 
             try
             {
-                return serializer.Deserialize(sender, receiver, data.Slice(4), version);
+                return serializer.Deserialize(sender, receiver, ref reader, version);
             }
             catch (ArgumentException ex) when (ex.ParamName == "version")
             {
@@ -48,28 +55,20 @@ namespace Zsharp.Elysium
             }
         }
 
-        public ArraySegment<byte> Serialize(Transaction transaction)
+        public void Serialize(IBufferWriter<byte> writer, Transaction transaction)
         {
             if (!this.serializers.TryGetValue(transaction.Id, out var serializer))
             {
                 throw new ArgumentException("The transaction is not supported.", nameof(transaction));
             }
 
-            using var buffer = new MemoryStream();
+            BinaryPrimitives.WriteUInt16BigEndian(writer.GetSpan(2), Convert.ToUInt16(transaction.Version));
+            writer.Advance(2);
 
-            using (var data = MemoryPool<byte>.Shared.Rent(4))
-            {
-                var output = data.Memory.Span.Slice(0, 4);
+            BinaryPrimitives.WriteUInt16BigEndian(writer.GetSpan(2), Convert.ToUInt16(transaction.Id));
+            writer.Advance(2);
 
-                BinaryPrimitives.WriteUInt16BigEndian(output.Slice(0), Convert.ToUInt16(transaction.Version));
-                BinaryPrimitives.WriteUInt16BigEndian(output.Slice(2), Convert.ToUInt16(transaction.Id));
-
-                buffer.Write(output);
-            }
-
-            serializer.Serialize(buffer, transaction);
-
-            return new ArraySegment<byte>(buffer.GetBuffer(), 0, Convert.ToInt32(buffer.Length));
+            serializer.Serialize(writer, transaction);
         }
     }
 }

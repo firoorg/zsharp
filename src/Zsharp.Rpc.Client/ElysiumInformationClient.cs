@@ -1,6 +1,7 @@
 namespace Zsharp.Rpc.Client
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -55,7 +56,7 @@ namespace Zsharp.Rpc.Client
                 histories);
         }
 
-        public async Task<ArraySegment<byte>?> GetPayloadAsync(
+        public async Task<ReadOnlySequence<byte>?> GetPayloadAsync(
             uint256 transaction,
             CancellationToken cancellationToken = default)
         {
@@ -70,7 +71,9 @@ namespace Zsharp.Rpc.Client
                 return null;
             }
 
-            return Encoders.Hex.DecodeData(resp.Result.Value<string>("payload"));
+            var payload = Encoders.Hex.DecodeData(resp.Result.Value<string>("payload"));
+
+            return new ReadOnlySequence<byte>(payload);
         }
 
         public async Task<ElysiumTransaction?> GetTransactionAsync(

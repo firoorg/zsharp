@@ -1,15 +1,18 @@
 namespace Zsharp.Elysium
 {
-    using System;
-    using System.IO;
+    using System.Buffers;
     using NBitcoin;
 
     public interface ITransactionPayloadSerializer
     {
         int TransactionId { get; }
 
-        Transaction Deserialize(BitcoinAddress? sender, BitcoinAddress? receiver, ReadOnlySpan<byte> data, int version);
+        Transaction Deserialize(
+            BitcoinAddress? sender,
+            BitcoinAddress? receiver,
+            ref SequenceReader<byte> reader,
+            int version);
 
-        void Serialize(MemoryStream output, Transaction transaction);
+        void Serialize(IBufferWriter<byte> writer, Transaction transaction);
     }
 }

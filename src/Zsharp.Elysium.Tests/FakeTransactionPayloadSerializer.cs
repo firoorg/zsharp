@@ -1,7 +1,7 @@
 namespace Zsharp.Elysium.Tests
 {
     using System;
-    using System.IO;
+    using System.Buffers;
     using Moq;
     using NBitcoin;
 
@@ -10,28 +10,38 @@ namespace Zsharp.Elysium.Tests
         public FakeTransactionPayloadSerializer(int transactionId)
         {
             this.StubbedDeserialize = new Mock<Func<BitcoinAddress?, BitcoinAddress?, byte[], int, Elysium.Transaction>>();
-            this.StubbedSerialize = new Mock<Action<MemoryStream, Elysium.Transaction>>();
+            this.StubbedSerialize = new Mock<Action<IBufferWriter<byte>, Elysium.Transaction>>();
             this.TransactionId = transactionId;
         }
 
         public Mock<Func<BitcoinAddress?, BitcoinAddress?, byte[], int, Elysium.Transaction>> StubbedDeserialize { get; }
 
-        public Mock<Action<MemoryStream, Elysium.Transaction>> StubbedSerialize { get; }
+        public Mock<Action<IBufferWriter<byte>, Elysium.Transaction>> StubbedSerialize { get; }
 
         public override int TransactionId { get; }
 
         public override Elysium.Transaction Deserialize(
             BitcoinAddress? sender,
             BitcoinAddress? receiver,
-            ReadOnlySpan<byte> data,
+            ref SequenceReader<byte> reader,
             int version)
         {
-            return this.StubbedDeserialize.Object(sender, receiver, data.ToArray(), version);
+            var length = Convert.ToInt32(reader.Remaining);
+
+            using (var memory = MemoryPool<byte>.Shared.Rent(length))
+            {
+                var buffer = memory.Memory.Span.Slice(0, length);
+
+                reader.TryCopyTo(buffer);
+                reader.Advance(length);
+
+                return this.StubbedDeserialize.Object(sender, receiver, buffer.ToArray(), version);
+            }
         }
 
-        public override void Serialize(MemoryStream output, Elysium.Transaction transaction)
+        public override void Serialize(IBufferWriter<byte> writer, Elysium.Transaction transaction)
         {
-            this.StubbedSerialize.Object(output, transaction);
+            this.StubbedSerialize.Object(writer, transaction);
         }
     }
 }
