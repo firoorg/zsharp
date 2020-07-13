@@ -12,6 +12,8 @@ namespace Zsharp.Rpc.Client
     public sealed class RpcClientFactory : IRpcClientFactory
     {
         readonly Network network;
+        readonly RPCCredentialString credential;
+        readonly Uri serverUrl;
 
         public RpcClientFactory(
             Network network,
@@ -20,19 +22,15 @@ namespace Zsharp.Rpc.Client
             ITransactionSerializer elysiumSerializer)
         {
             this.network = network;
-            this.ServerUrl = server;
-            this.Credential = credential;
+            this.serverUrl = server;
+            this.credential = credential;
             this.ElysiumSerializer = elysiumSerializer;
             this.GenesisTransactions = new HashSet<uint256>(network.GetGenesis().Transactions.Select(t => t.GetHash()));
         }
 
-        public RPCCredentialString Credential { get; }
-
         public ITransactionSerializer ElysiumSerializer { get; }
 
         public ISet<uint256> GenesisTransactions { get; }
-
-        public Uri ServerUrl { get; }
 
         public async ValueTask<IChainInformationClient> CreateChainInformationClientAsync(
             CancellationToken cancellationToken = default)
@@ -63,18 +61,9 @@ namespace Zsharp.Rpc.Client
             return new WalletClient(this, await this.CreateClientAsync(cancellationToken));
         }
 
-        public void Dispose()
-        {
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            return new ValueTask(Task.CompletedTask);
-        }
-
         async Task<RPCClient> CreateClientAsync(CancellationToken cancellationToken = default)
         {
-            var client = new RPCClient(this.Credential, this.ServerUrl, this.network);
+            var client = new RPCClient(this.credential, this.serverUrl, this.network);
 
             await client.ScanRPCCapabilitiesAsync();
 

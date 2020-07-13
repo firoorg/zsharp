@@ -1,6 +1,5 @@
 namespace Zsharp.Rpc.Client
 {
-    using System;
     using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
@@ -66,7 +65,7 @@ namespace Zsharp.Rpc.Client
             {
                 resp = await this.Client.SendCommandAsync("elysium_getpayload", transaction.ToString());
             }
-            catch (RPCException ex) when (ex.RPCCodeMessage == "Not a Elysium Protocol transaction")
+            catch (RPCException ex) when (ex.Message == "Not a Elysium Protocol transaction")
             {
                 return null;
             }
@@ -86,7 +85,7 @@ namespace Zsharp.Rpc.Client
             {
                 resp = await this.Client.SendCommandAsync("elysium_gettransaction", hash.ToString());
             }
-            catch (RPCException ex) when (ex.RPCCodeMessage == "Not a Elysium Protocol transaction")
+            catch (RPCException ex) when (ex.Message == "Not a Elysium Protocol transaction")
             {
                 return null;
             }

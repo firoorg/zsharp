@@ -17,5 +17,7 @@ namespace Zsharp.Rpc.Client
         Task<BlockHeader?> GetBlockHeaderAsync(int height, CancellationToken cancellationToken = default);
 
         Task<BlockchainInfo> GetChainInfoAsync(CancellationToken cancellationToken = default);
+
+        Task<Transaction?> GetTransactionAsync(uint256 hash, CancellationToken cancellationToken = default);
     }
 }

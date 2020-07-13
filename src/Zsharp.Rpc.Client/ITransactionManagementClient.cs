@@ -9,7 +9,7 @@ namespace Zsharp.Rpc.Client
     {
         Task<uint256> PublishAsync(
             Transaction transaction,
-            bool? disableSafeFee,
+            bool? disableSafeFee = null,
             CancellationToken cancellationToken = default);
     }
 }
