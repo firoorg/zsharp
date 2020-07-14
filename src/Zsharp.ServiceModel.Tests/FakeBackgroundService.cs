@@ -1,45 +1,55 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Moq;
-
 namespace Zsharp.ServiceModel.Tests
 {
-    public sealed class FakeBackgroundService : BackgroundService
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Moq;
+
+    sealed class FakeBackgroundService : BackgroundService
     {
-        public FakeBackgroundService(IBackgroundServiceExceptionHandler exceptionHandler) : base(exceptionHandler)
+        public FakeBackgroundService(IServiceExceptionHandler exceptionHandler)
+            : base(exceptionHandler)
         {
-            StubbedDisposeAsync = new Mock<Func<bool, ValueTask>>();
-            StubbedExecuteAsync = new Mock<Func<CancellationToken, ValueTask>>();
-            StubbedPostExecuteAsync = new Mock<Func<CancellationToken, ValueTask>>();
-            StubbedPreExecuteAsync = new Mock<Func<CancellationToken, ValueTask>>();
+            this.StubbedDispose = new Mock<Action<bool>>();
+            this.StubbedDisposeAsyncCore = new Mock<Func<ValueTask>>();
+            this.StubbedExecuteAsync = new Mock<Func<CancellationToken, Task>>();
+            this.StubbedPostExecuteAsync = new Mock<Func<CancellationToken, Task>>();
+            this.StubbedPreExecuteAsync = new Mock<Func<CancellationToken, Task>>();
         }
 
-        public Mock<Func<bool, ValueTask>> StubbedDisposeAsync { get; }
+        public Mock<Action<bool>> StubbedDispose { get; }
 
-        public Mock<Func<CancellationToken, ValueTask>> StubbedExecuteAsync { get; }
+        public Mock<Func<ValueTask>> StubbedDisposeAsyncCore { get; }
 
-        public Mock<Func<CancellationToken, ValueTask>> StubbedPostExecuteAsync { get; }
+        public Mock<Func<CancellationToken, Task>> StubbedExecuteAsync { get; }
 
-        public Mock<Func<CancellationToken, ValueTask>> StubbedPreExecuteAsync { get; }
+        public Mock<Func<CancellationToken, Task>> StubbedPostExecuteAsync { get; }
 
-        protected override async ValueTask DisposeAsync(bool disposing)
+        public Mock<Func<CancellationToken, Task>> StubbedPreExecuteAsync { get; }
+
+        protected override void Dispose(bool disposing)
         {
-            await base.DisposeAsync(disposing);
-            await StubbedDisposeAsync.Object(disposing);
+            base.Dispose(disposing);
+            this.StubbedDispose.Object(disposing);
         }
 
-        protected override ValueTask ExecuteAsync(CancellationToken cancellationToken = default)
+        protected override async ValueTask DisposeAsyncCore()
+        {
+            await base.DisposeAsyncCore();
+            await this.StubbedDisposeAsyncCore.Object();
+        }
+
+        protected override Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
             return StubbedExecuteAsync.Object(cancellationToken);
         }
 
-        protected override ValueTask PostExecuteAsync(CancellationToken cancellationToken = default)
+        protected override Task PostExecuteAsync(CancellationToken cancellationToken = default)
         {
             return StubbedPostExecuteAsync.Object(cancellationToken);
         }
 
-        protected override ValueTask PreExecuteAsync(CancellationToken cancellationToken = default)
+        protected override Task PreExecuteAsync(CancellationToken cancellationToken = default)
         {
             return StubbedPreExecuteAsync.Object(cancellationToken);
         }

@@ -1,83 +1,116 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Moq;
-using Xunit;
-using static Zsharp.Testing.AsynchronousTesting;
-
 namespace Zsharp.ServiceModel.Tests
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Moq;
+    using Xunit;
+    using static Zsharp.Testing.AsynchronousTesting;
+
     public sealed class BackgroundServiceTests : IDisposable
     {
-        readonly Mock<IBackgroundServiceExceptionHandler> exceptionHandler;
+        readonly Mock<IServiceExceptionHandler> exceptionHandler;
         readonly FakeBackgroundService subject;
 
         public BackgroundServiceTests()
         {
-            this.exceptionHandler = new Mock<IBackgroundServiceExceptionHandler>();
+            this.exceptionHandler = new Mock<IServiceExceptionHandler>();
             this.subject = new FakeBackgroundService(this.exceptionHandler.Object);
         }
 
         public void Dispose()
         {
-            this.subject.DisposeAsync().AsTask().Wait();
+            this.subject.Dispose();
         }
 
         [Fact]
-        public async Task Dispose_NotStarted_ShouldSuccess()
+        public void Dispose_NotStarted_ShouldSuccess()
         {
-            // Act.
-            await this.subject.DisposeAsync();
-            await this.subject.DisposeAsync();
+            this.subject.Dispose();
 
-            // Assert.
-            this.subject.StubbedDisposeAsync.Verify(f => f(true), Times.Exactly(2));
+            this.subject.StubbedDispose.Verify(f => f(true), Times.Once());
         }
 
         [Fact]
-        public async Task Dispose_AlreadyStarted_ShouldInvokeStopAsync()
+        public async Task Dispose_AlreadyStarted_ShouldStop()
         {
             // Arrange.
             var cancel = new Mock<Action>();
 
             this.subject.StubbedExecuteAsync
-                .Setup(f => f(It.IsAny<CancellationToken>()))
+                .Setup(f => f(It.IsNotIn(CancellationToken.None)))
                 .Callback<CancellationToken>(cancellationToken => cancellationToken.Register(cancel.Object));
 
-            await this.subject.StartAsync(CancellationToken.None);
+            await this.subject.StartAsync();
 
             // Act.
+            this.subject.Dispose();
+
+            // Assert.
+            cancel.Verify(f => f(), Times.Once());
+
+            this.subject.StubbedDispose.Verify(f => f(true), Times.Once());
+        }
+
+        [Fact]
+        public async Task DisposeAsync_NotStarted_ShouldSuccess()
+        {
             await this.subject.DisposeAsync();
+
+            this.subject.StubbedDisposeAsyncCore.Verify(f => f(), Times.Once());
+            this.subject.StubbedDispose.Verify(f => f(false), Times.Once());
+        }
+
+        [Fact]
+        public async Task DisposeAsync_AlreadyStarted_ShouldStop()
+        {
+            // Arrange.
+            var cancel = new Mock<Action>();
+
+            this.subject.StubbedExecuteAsync
+                .Setup(f => f(It.IsNotIn(CancellationToken.None)))
+                .Callback<CancellationToken>(cancellationToken => cancellationToken.Register(cancel.Object));
+
+            await this.subject.StartAsync();
+
+            // Act.
             await this.subject.DisposeAsync();
 
             // Assert.
             cancel.Verify(f => f(), Times.Once());
-            this.subject.StubbedDisposeAsync.Verify(f => f(true), Times.Exactly(2));
+
+            this.subject.StubbedDisposeAsyncCore.Verify(f => f(), Times.Once());
+            this.subject.StubbedDispose.Verify(f => f(false), Times.Once());
         }
 
         [Fact]
         public Task StartAsync_NotStarted_ShouldStart() => WithCancellationTokenAsync(async cancellationToken =>
         {
-            // Act.
-            await this.subject.StartAsync(cancellationToken);
-            await this.subject.StopAsync(CancellationToken.None);
+            // Arrange.
+            using (var started = new ManualResetEventSlim())
+            {
+                this.subject.StubbedPostExecuteAsync
+                    .Setup(f => f(It.IsAny<CancellationToken>()))
+                    .Callback(() => started.Set());
 
-            // Assert.
-            this.subject.StubbedPreExecuteAsync.Verify(
-                f => f(It.IsNotIn(cancellationToken, CancellationToken.None)),
-                Times.Once());
+                // Act.
+                await this.subject.StartAsync(cancellationToken);
 
-            this.subject.StubbedExecuteAsync.Verify(
-                f => f(It.IsNotIn(cancellationToken, CancellationToken.None)),
-                Times.Once());
+                started.Wait();
 
-            this.subject.StubbedPostExecuteAsync.Verify(
-                f => f(CancellationToken.None),
-                Times.Once());
+                // Assert.
+                this.subject.StubbedPreExecuteAsync.Verify(
+                    f => f(It.IsNotIn(cancellationToken, CancellationToken.None)),
+                    Times.Once());
 
-            this.exceptionHandler.Verify(
-                h => h.RunAsync(It.IsAny<Type>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()),
-                Times.Never());
+                this.subject.StubbedExecuteAsync.Verify(
+                    f => f(It.IsNotIn(cancellationToken, CancellationToken.None)),
+                    Times.Once());
+
+                this.subject.StubbedPostExecuteAsync.Verify(
+                    f => f(CancellationToken.None),
+                    Times.Once());
+            }
         });
 
         [Fact]
@@ -91,85 +124,139 @@ namespace Zsharp.ServiceModel.Tests
         });
 
         [Fact]
-        public Task StartAsync_WhenPreExecuteAsyncThrow_ShouldInvokeExceptionHandler() => WithCancellationTokenAsync(
-            async cancellationToken =>
+        public Task StartAsync_WhenPreExecuteAsyncThrow_ShouldInvokeExceptionHandler()
+        {
+            return WithCancellationTokenAsync(async cancellationToken =>
             {
                 // Arrange.
-                this.subject.StubbedPreExecuteAsync
-                    .Setup(f => f(It.IsAny<CancellationToken>()))
-                    .Returns(new ValueTask(Task.FromException(new Exception())));
+                using (var started = new ManualResetEventSlim())
+                {
+                    this.subject.StubbedPreExecuteAsync
+                        .Setup(f => f(It.IsAny<CancellationToken>()))
+                        .ThrowsAsync(new Exception());
 
-                // Act.
-                await this.subject.StartAsync(cancellationToken);
-                await this.subject.StopAsync(CancellationToken.None);
+                    this.exceptionHandler
+                        .Setup(
+                            h => h.HandleExceptionAsync(
+                                It.IsAny<Type>(),
+                                It.IsAny<Exception>(),
+                                It.IsAny<CancellationToken>()))
+                        .Callback(() => started.Set());
 
-                // Assert.
-                this.subject.StubbedPreExecuteAsync.Verify(
-                    f => f(It.IsNotIn(cancellationToken, CancellationToken.None)),
-                    Times.Once());
+                    // Act.
+                    await this.subject.StartAsync(cancellationToken);
 
-                this.subject.StubbedExecuteAsync.Verify(
-                    f => f(It.IsAny<CancellationToken>()),
-                    Times.Never());
+                    started.Wait();
 
-                this.subject.StubbedPostExecuteAsync.Verify(
-                    f => f(It.IsAny<CancellationToken>()),
-                    Times.Never());
+                    // Assert.
+                    this.subject.StubbedPreExecuteAsync.Verify(
+                        f => f(It.IsNotIn(cancellationToken, CancellationToken.None)),
+                        Times.Once());
 
-                this.exceptionHandler.Verify(
-                    h => h.RunAsync(this.subject.GetType(), It.Is<Exception>(ex => ex != null), CancellationToken.None),
-                    Times.Once());
+                    this.subject.StubbedExecuteAsync.Verify(
+                        f => f(It.IsAny<CancellationToken>()),
+                        Times.Never());
+
+                    this.subject.StubbedPostExecuteAsync.Verify(
+                        f => f(It.IsAny<CancellationToken>()),
+                        Times.Never());
+
+                    this.exceptionHandler.Verify(
+                        h => h.HandleExceptionAsync(this.subject.GetType(), It.IsAny<Exception>(), default),
+                        Times.Once());
+                }
             });
+        }
 
         [Fact]
-        public Task StartAsync_WhenExecuteAsyncThrow_ShouldInvokeExceptionHandler() => WithCancellationTokenAsync(
-            async cancellationToken =>
+        public Task StartAsync_WhenExecuteAsyncThrow_ShouldInvokeExceptionHandler()
+        {
+            return WithCancellationTokenAsync(async cancellationToken =>
             {
                 // Arrange.
-                this.subject.StubbedExecuteAsync
-                    .Setup(f => f(It.IsAny<CancellationToken>()))
-                    .Returns(new ValueTask(Task.FromException(new Exception())));
+                using (var started = new ManualResetEventSlim())
+                {
+                    this.subject.StubbedExecuteAsync
+                        .Setup(f => f(It.IsAny<CancellationToken>()))
+                        .ThrowsAsync(new Exception());
 
-                // Act.
-                await this.subject.StartAsync(cancellationToken);
-                await this.subject.StopAsync(CancellationToken.None);
+                    this.exceptionHandler
+                        .Setup(
+                            h => h.HandleExceptionAsync(
+                                It.IsAny<Type>(),
+                                It.IsAny<Exception>(),
+                                It.IsAny<CancellationToken>()))
+                        .Callback(() => started.Set());
 
-                // Assert.
-                this.subject.StubbedExecuteAsync.Verify(
-                    f => f(It.IsNotIn(cancellationToken, CancellationToken.None)),
-                    Times.Once());
+                    // Act.
+                    await this.subject.StartAsync(cancellationToken);
 
-                this.subject.StubbedPostExecuteAsync.Verify(
-                    f => f(CancellationToken.None),
-                    Times.Once());
+                    started.Wait();
 
-                this.exceptionHandler.Verify(
-                    h => h.RunAsync(this.subject.GetType(), It.Is<Exception>(ex => ex != null), CancellationToken.None),
-                    Times.Once());
+                    // Assert.
+                    this.subject.StubbedPreExecuteAsync.Verify(
+                        f => f(It.IsNotIn(cancellationToken, default)),
+                        Times.Once());
+
+                    this.subject.StubbedExecuteAsync.Verify(
+                        f => f(It.IsNotIn(cancellationToken, default)),
+                        Times.Once());
+
+                    this.subject.StubbedPostExecuteAsync.Verify(
+                        f => f(default),
+                        Times.Once());
+
+                    this.exceptionHandler.Verify(
+                        h => h.HandleExceptionAsync(this.subject.GetType(), It.IsAny<Exception>(), default),
+                        Times.Once());
+                }
             });
+        }
 
         [Fact]
-        public Task StartAsync_WhenPostExecuteAsyncThrow_ShouldInvokeExceptionHandler() => WithCancellationTokenAsync(
-            async cancellationToken =>
+        public Task StartAsync_WhenPostExecuteAsyncThrow_ShouldInvokeExceptionHandler()
+        {
+            return WithCancellationTokenAsync(async cancellationToken =>
             {
                 // Arrange.
-                this.subject.StubbedPostExecuteAsync
-                    .Setup(f => f(It.IsAny<CancellationToken>()))
-                    .Returns(new ValueTask(Task.FromException(new Exception())));
+                using (var started = new ManualResetEventSlim())
+                {
+                    this.subject.StubbedPostExecuteAsync
+                        .Setup(f => f(It.IsAny<CancellationToken>()))
+                        .ThrowsAsync(new Exception());
 
-                // Act.
-                await this.subject.StartAsync(cancellationToken);
-                await this.subject.StopAsync(CancellationToken.None);
+                    this.exceptionHandler
+                        .Setup(
+                            h => h.HandleExceptionAsync(
+                                It.IsAny<Type>(),
+                                It.IsAny<Exception>(),
+                                It.IsAny<CancellationToken>()))
+                        .Callback(() => started.Set());
 
-                // Assert.
-                this.subject.StubbedPostExecuteAsync.Verify(
-                    f => f(CancellationToken.None),
-                    Times.Once());
+                    // Act.
+                    await this.subject.StartAsync(cancellationToken);
 
-                this.exceptionHandler.Verify(
-                    h => h.RunAsync(this.subject.GetType(), It.Is<Exception>(ex => ex != null), CancellationToken.None),
-                    Times.Once());
+                    started.Wait();
+
+                    // Assert.
+                    this.subject.StubbedPreExecuteAsync.Verify(
+                        f => f(It.IsNotIn(cancellationToken, CancellationToken.None)),
+                        Times.Once());
+
+                    this.subject.StubbedExecuteAsync.Verify(
+                        f => f(It.IsNotIn(cancellationToken, CancellationToken.None)),
+                        Times.Once());
+
+                    this.subject.StubbedPostExecuteAsync.Verify(
+                        f => f(default),
+                        Times.Once());
+
+                    this.exceptionHandler.Verify(
+                        h => h.HandleExceptionAsync(this.subject.GetType(), It.IsAny<Exception>(), default),
+                        Times.Once());
+                }
             });
+        }
 
         [Fact]
         public Task StopAsync_NotStarted_ShouldThrow()
@@ -178,96 +265,129 @@ namespace Zsharp.ServiceModel.Tests
         }
 
         [Fact]
-        public Task StopAsync_BackgroundTaskSucceeded_ShouldSuccess() => WithCancellationTokenAsync(
-            async cancellationToken =>
+        public Task StopAsync_BackgroundTaskSucceeded_ShouldNotThrow()
+        {
+            return WithCancellationTokenAsync(async cancellationToken =>
             {
                 // Arrange.
                 await this.subject.StartAsync(cancellationToken);
 
                 // Act.
-                await this.subject.StopAsync(CancellationToken.None);
+                await this.subject.StopAsync();
 
                 // Assert.
+                this.subject.StubbedPreExecuteAsync.Verify(
+                    f => f(It.IsNotIn(cancellationToken, default)),
+                    Times.Once());
+
                 this.subject.StubbedExecuteAsync.Verify(
-                    f => f(It.Is<CancellationToken>(t => t != cancellationToken)),
+                    f => f(It.IsNotIn(cancellationToken, default)),
+                    Times.Once());
+
+                this.subject.StubbedPostExecuteAsync.Verify(
+                    f => f(default),
                     Times.Once());
 
                 this.exceptionHandler.Verify(
-                    h => h.RunAsync(It.IsAny<Type>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()),
+                    h => h.HandleExceptionAsync(It.IsAny<Type>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()),
                     Times.Never());
             });
+        }
 
         [Fact]
-        public Task StopAsync_BackgroundTaskThrowException_ShouldSuccess() => WithCancellationTokenAsync(
-            async cancellationToken =>
+        public Task StopAsync_BackgroundTaskThrowException_ShouldNotThrow()
+        {
+            return WithCancellationTokenAsync(async cancellationToken =>
             {
                 // Arrange.
                 this.subject.StubbedExecuteAsync
                     .Setup(f => f(It.IsAny<CancellationToken>()))
-                    .Returns(new ValueTask(Task.FromException(new Exception())));
+                    .ThrowsAsync(new Exception());
 
                 await this.subject.StartAsync(cancellationToken);
 
                 // Act.
-                await this.subject.StopAsync(CancellationToken.None);
+                await this.subject.StopAsync();
 
                 // Assert.
+                this.subject.StubbedPreExecuteAsync.Verify(
+                    f => f(It.IsNotIn(cancellationToken, default)),
+                    Times.Once());
+
                 this.subject.StubbedExecuteAsync.Verify(
-                    f => f(It.Is<CancellationToken>(t => t != cancellationToken)),
+                    f => f(It.IsNotIn(cancellationToken, default)),
+                    Times.Once());
+
+                this.subject.StubbedPostExecuteAsync.Verify(
+                    f => f(default),
                     Times.Once());
 
                 this.exceptionHandler.Verify(
-                    h => h.RunAsync(this.subject.GetType(), It.Is<Exception>(ex => ex != null), CancellationToken.None),
+                    h => h.HandleExceptionAsync(this.subject.GetType(), It.IsAny<Exception>(), default),
                     Times.Once());
             });
+        }
 
         [Fact]
-        public Task StopAsync_BackgroundTaskCanceled_ShouldSuccess() => WithCancellationTokenAsync(
-            async cancellationToken =>
+        public Task StopAsync_BackgroundTaskCanceled_ShouldNotThrow()
+        {
+            return WithCancellationTokenAsync(async cancellationToken =>
             {
                 // Arrange.
                 this.subject.StubbedExecuteAsync
                     .Setup(f => f(It.IsAny<CancellationToken>()))
-                    .Returns<CancellationToken>(async t =>
+                    .Returns<CancellationToken>(async cancellationToken =>
                     {
-                        await Task.Delay(Timeout.InfiniteTimeSpan, t);
-                        t.ThrowIfCancellationRequested();
+                        await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
                     });
 
                 await this.subject.StartAsync(cancellationToken);
 
                 // Act.
-                await this.subject.StopAsync(CancellationToken.None);
+                await this.subject.StopAsync();
 
                 // Assert.
+                this.subject.StubbedPreExecuteAsync.Verify(
+                    f => f(It.IsNotIn(cancellationToken, default)),
+                    Times.Once());
+
                 this.subject.StubbedExecuteAsync.Verify(
-                    f => f(It.Is<CancellationToken>(t => t != cancellationToken)),
+                    f => f(It.IsNotIn(cancellationToken, default)),
+                    Times.Once());
+
+                this.subject.StubbedPostExecuteAsync.Verify(
+                    f => f(default),
                     Times.Once());
 
                 this.exceptionHandler.Verify(
-                    h => h.RunAsync(It.IsAny<Type>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()),
+                    h => h.HandleExceptionAsync(It.IsAny<Type>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>()),
                     Times.Never());
             });
+        }
 
         [Fact]
-        public Task StopAsync_WhenCanceled_ShouldThrow() => WithCancellationTokenAsync(
-            async (cancellationToken, cancel) =>
-            {
-                // Arrange.
-                this.subject.StubbedExecuteAsync
-                    .Setup(f => f(It.IsAny<CancellationToken>()))
-                    .Returns(new ValueTask(Task.Delay(Timeout.InfiniteTimeSpan)));
+        public Task StopAsync_WhenCanceled_ShouldThrow()
+        {
+            return WithCancellationTokenAsync(
+                async (cancellationToken, cancel) =>
+                {
+                    // Arrange.
+                    this.subject.StubbedExecuteAsync
+                        .Setup(f => f(It.IsAny<CancellationToken>()))
+                        .Returns(Task.Delay(Timeout.InfiniteTimeSpan));
 
-                await this.subject.StartAsync(CancellationToken.None);
+                    await this.subject.StartAsync();
 
-                // Act.
-                var stop = this.subject.StopAsync(cancellationToken);
+                    // Act.
+                    var stop = this.subject.StopAsync(cancellationToken);
 
-                cancel();
+                    cancel();
 
-                // Assert.
-                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => stop);
-            },
-            cancellationSource => cancellationSource.Cancel());
+                    // Assert.
+                    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => stop);
+                },
+                canceler => canceler.Cancel());
+        }
     }
 }

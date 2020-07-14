@@ -5,22 +5,29 @@ namespace Zsharp.ServiceModel
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
 
-    public abstract class BackgroundService : IAsyncDisposable, IHostedService
+    public abstract class BackgroundService : IAsyncDisposable, IDisposable, IHostedService
     {
-        readonly IBackgroundServiceExceptionHandler exceptionHandler;
-        readonly CancellationTokenSource cancellation;
+        readonly IServiceExceptionHandler exceptionHandler;
+        readonly CancellationTokenSource canceler;
         Task? background;
         bool disposed;
 
-        protected BackgroundService(IBackgroundServiceExceptionHandler exceptionHandler)
+        protected BackgroundService(IServiceExceptionHandler exceptionHandler)
         {
             this.exceptionHandler = exceptionHandler;
-            this.cancellation = new CancellationTokenSource();
+            this.canceler = new CancellationTokenSource();
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public async ValueTask DisposeAsync()
         {
-            await this.DisposeAsync(true);
+            await this.DisposeAsyncCore();
+            this.Dispose(false);
             GC.SuppressFinalize(this);
         }
 
@@ -31,7 +38,7 @@ namespace Zsharp.ServiceModel
                 throw new InvalidOperationException("The service is already started.");
             }
 
-            this.background = this.RunBackgroundTaskAsync(this.cancellation.Token);
+            this.background = this.RunBackgroundTaskAsync(this.canceler.Token);
 
             return Task.CompletedTask;
         }
@@ -43,16 +50,16 @@ namespace Zsharp.ServiceModel
                 throw new InvalidOperationException("The service was not started.");
             }
 
-            this.cancellation.Cancel();
+            var canceled = Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+
+            this.canceler.Cancel();
 
             try
             {
                 // This method must ignores any errors that was raised from the background task due to it is already
                 // handled by the exception handler. But we still needs to throw OperationCanceledException if
                 // cancellationToken is triggered.
-                var completed = await Task.WhenAny(
-                    this.background,
-                    Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken));
+                var completed = await Task.WhenAny(this.background, canceled);
 
                 if (!ReferenceEquals(completed, this.background))
                 {
@@ -65,7 +72,7 @@ namespace Zsharp.ServiceModel
             }
         }
 
-        protected virtual async ValueTask DisposeAsync(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (this.disposed)
             {
@@ -76,20 +83,30 @@ namespace Zsharp.ServiceModel
             {
                 if (this.background != null)
                 {
-                    await this.StopAsync();
+                    this.StopAsync().Wait();
                 }
 
-                this.cancellation.Dispose();
+                this.canceler.Dispose();
             }
 
             this.disposed = true;
         }
 
-        protected abstract ValueTask ExecuteAsync(CancellationToken cancellationToken = default);
+        protected virtual async ValueTask DisposeAsyncCore()
+        {
+            if (this.background != null)
+            {
+                await this.StopAsync();
+            }
 
-        protected virtual ValueTask PostExecuteAsync(CancellationToken cancellationToken = default) => default;
+            this.canceler.Dispose();
+        }
 
-        protected virtual ValueTask PreExecuteAsync(CancellationToken cancellationToken = default) => default;
+        protected abstract Task ExecuteAsync(CancellationToken cancellationToken = default);
+
+        protected virtual Task PostExecuteAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        protected virtual Task PreExecuteAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
         async Task RunBackgroundTaskAsync(CancellationToken cancellationToken = default)
         {
@@ -110,7 +127,7 @@ namespace Zsharp.ServiceModel
             }
             catch (Exception ex) when (ex is OperationCanceledException == false)
             {
-                await this.exceptionHandler.RunAsync(this.GetType(), ex);
+                await this.exceptionHandler.HandleExceptionAsync(this.GetType(), ex);
             }
         }
     }
