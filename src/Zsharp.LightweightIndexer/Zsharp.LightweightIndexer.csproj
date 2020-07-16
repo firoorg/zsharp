@@ -5,12 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AsyncEvent" Version="0.2.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="3.1.6" />
     <PackageReference Include="NBitcoin" Version="5.0.44" />
     <PackageReference Include="NetMQ" Version="4.0.0.207" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Zsharp.Rpc.Client\Zsharp.Rpc.Client.csproj" />
+    <ProjectReference Include="..\Zsharp.ServiceModel\Zsharp.ServiceModel.csproj" />
   </ItemGroup>
 
 </Project>
