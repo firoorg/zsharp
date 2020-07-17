@@ -78,14 +78,6 @@ namespace Zsharp.Bitcoin.Tests
             Assert.False(this.subject.IsZerocoinSpend());
         }
 
-        [Fact]
-        public void GetConsensusFactory_WhenInvoke_ShouldReturnZcoinVersion()
-        {
-            var result = this.subject.GetConsensusFactory();
-
-            Assert.Same(this.factory, result);
-        }
-
         static void MakeCoinbase(TxIn input, int height = 1)
         {
             input.ScriptSig = new Script(Op.GetPushOp(height));

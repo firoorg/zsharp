@@ -37,14 +37,6 @@ namespace Zsharp.Bitcoin.Tests
         }
 
         [Fact]
-        public void CreateTxIn_WhenInvoke_ShouldReturnZcoinVersion()
-        {
-            var input = this.subject.CreateTxIn();
-
-            Assert.IsNotType<TxIn>(input);
-        }
-
-        [Fact]
         public void CreateTxOut_WhenInvoke_ShouldReturnZcoinVersion()
         {
             var output = this.subject.CreateTxOut();

@@ -18,8 +18,6 @@ namespace Zsharp.Bitcoin
 
         public override NBitcoin.Transaction CreateTransaction() => new Transaction(this);
 
-        public override TxIn CreateTxIn() => new Input(this);
-
         public override TxOut CreateTxOut() => new Output(this);
     }
 }
