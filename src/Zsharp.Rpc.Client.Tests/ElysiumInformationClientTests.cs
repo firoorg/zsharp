@@ -202,7 +202,7 @@ namespace Zsharp.Rpc.Client.Tests
             Assert.Equal(new PropertyId(1), result.First().Id);
             Assert.Equal("Exodus", result.First().Name);
             Assert.Equal("N/A", result.First().Subcategory);
-            Assert.Equal(TokenType.Divisible, result.First().Type);
+            Assert.Equal(TokenType.Divisible, result.First().TokenType);
             Assert.Equal("https://www.zcoin.io", result.First().WebsiteUrl);
 
             Assert.Equal("N/A", result.Last().Category);
@@ -210,7 +210,7 @@ namespace Zsharp.Rpc.Client.Tests
             Assert.Equal(new PropertyId(2), result.Last().Id);
             Assert.Equal("Test Exodus", result.Last().Name);
             Assert.Equal("N/A", result.Last().Subcategory);
-            Assert.Equal(TokenType.Divisible, result.Last().Type);
+            Assert.Equal(TokenType.Divisible, result.Last().TokenType);
             Assert.Equal("https://www.zcoin.io", result.Last().WebsiteUrl);
         }
 

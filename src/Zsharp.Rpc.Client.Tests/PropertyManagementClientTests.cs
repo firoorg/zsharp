@@ -53,7 +53,7 @@ namespace Zsharp.Rpc.Client.Tests
                 Assert.Equal("Private", props.Last().Subcategory);
                 Assert.Equal("https://satang.com", props.Last().WebsiteUrl);
                 Assert.Equal("Provides cryptocurrency solutions.", props.Last().Description);
-                Assert.Equal(TokenType.Indivisible, props.Last().Type);
+                Assert.Equal(TokenType.Indivisible, props.Last().TokenType);
             }
         }
 

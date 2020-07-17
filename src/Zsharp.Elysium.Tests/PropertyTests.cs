@@ -28,7 +28,7 @@ namespace Zsharp.Elysium.Tests
             Assert.Equal(this.subject.Id, new PropertyId(1));
             Assert.Equal("Token", this.subject.Name);
             Assert.Equal("Bar", this.subject.Subcategory);
-            Assert.Equal(TokenType.Divisible, this.subject.Type);
+            Assert.Equal(TokenType.Divisible, this.subject.TokenType);
             Assert.Equal("http://localhost", this.subject.WebsiteUrl);
         }
 
@@ -54,7 +54,7 @@ namespace Zsharp.Elysium.Tests
                 this.subject.Subcategory,
                 this.subject.WebsiteUrl,
                 this.subject.Description,
-                this.subject.Type);
+                this.subject.TokenType);
 
             Assert.False(this.subject.Equals(other));
         }
@@ -65,12 +65,12 @@ namespace Zsharp.Elysium.Tests
             var id = new PropertyId(1);
             var others = new Func<Property, Property>[]
             {
-                l => new Property(id, l.Name, l.Category, l.Subcategory, l.WebsiteUrl, l.Description, l.Type),
-                l => new Property(id, "abc", l.Category, l.Subcategory, l.WebsiteUrl, l.Description, l.Type),
-                l => new Property(id, l.Name, "abc", l.Subcategory, l.WebsiteUrl, l.Description, l.Type),
-                l => new Property(id, l.Name, l.Category, "abc", l.WebsiteUrl, l.Description, l.Type),
-                l => new Property(id, l.Name, l.Category, l.Subcategory, "abc", l.Description, l.Type),
-                l => new Property(id, l.Name, l.Category, l.Subcategory, l.WebsiteUrl, "abc", l.Type),
+                l => new Property(id, l.Name, l.Category, l.Subcategory, l.WebsiteUrl, l.Description, l.TokenType),
+                l => new Property(id, "abc", l.Category, l.Subcategory, l.WebsiteUrl, l.Description, l.TokenType),
+                l => new Property(id, l.Name, "abc", l.Subcategory, l.WebsiteUrl, l.Description, l.TokenType),
+                l => new Property(id, l.Name, l.Category, "abc", l.WebsiteUrl, l.Description, l.TokenType),
+                l => new Property(id, l.Name, l.Category, l.Subcategory, "abc", l.Description, l.TokenType),
+                l => new Property(id, l.Name, l.Category, l.Subcategory, l.WebsiteUrl, "abc", l.TokenType),
                 l => new Property(
                     id,
                     l.Name,

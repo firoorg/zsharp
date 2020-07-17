@@ -63,7 +63,7 @@ namespace Zsharp.Rpc.Client
                 from.ToString(),
                 ReferenceEquals(to, null) ? string.Empty : to.ToString(),
                 property.Id.Value,
-                amount.ToString(property.Type),
+                amount.ToString(property.TokenType),
             };
 
             if (note != null)
@@ -96,7 +96,7 @@ namespace Zsharp.Rpc.Client
                 from.ToString(),
                 to.ToString(),
                 property.Id.Value,
-                amount.ToString(property.Type),
+                amount.ToString(property.TokenType),
             };
 
             if (referenceAmount != null)

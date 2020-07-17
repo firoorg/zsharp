@@ -9,7 +9,7 @@ namespace Zsharp.Elysium
             string subcategory,
             string websiteUrl,
             string description,
-            TokenType type)
+            TokenType tokenType)
         {
             this.Id = id;
             this.Name = name;
@@ -17,7 +17,7 @@ namespace Zsharp.Elysium
             this.Subcategory = subcategory;
             this.WebsiteUrl = websiteUrl;
             this.Description = description;
-            this.Type = type;
+            this.TokenType = tokenType;
         }
 
         public string Category { get; }
@@ -30,7 +30,7 @@ namespace Zsharp.Elysium
 
         public string Subcategory { get; }
 
-        public TokenType Type { get; }
+        public TokenType TokenType { get; }
 
         public string WebsiteUrl { get; }
 
