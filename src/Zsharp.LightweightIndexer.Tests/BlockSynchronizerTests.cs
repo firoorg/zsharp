@@ -1,11 +1,13 @@
 namespace Zsharp.LightweightIndexer.Tests
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using AsyncEvent;
     using Microsoft.Extensions.Logging;
     using Moq;
+    using NBitcoin;
     using Xunit;
     using Zsharp.Bitcoin;
     using Zsharp.ServiceModel;
@@ -132,11 +134,11 @@ namespace Zsharp.LightweightIndexer.Tests
             {
                 // Arrange.
                 this.repository
-                    .SetupSequence(r => r.GetLastAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((TestBlock.Regtest2, 2))
-                    .ReturnsAsync((TestBlock.Regtest1, 1))
-                    .ReturnsAsync((TestBlock.Regtest0, 0))
-                    .ReturnsAsync((null, -1));
+                    .SetupSequence(r => r.GetLatestsBlocksAsync(1, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((new[] { TestBlock.Regtest2 }, 2))
+                    .ReturnsAsync((new[] { TestBlock.Regtest1 }, 1))
+                    .ReturnsAsync((new[] { TestBlock.Regtest0 }, 0))
+                    .ReturnsAsync((Enumerable.Empty<Block>(), -1));
 
                 await this.subject.StartAsync();
 
@@ -156,15 +158,15 @@ namespace Zsharp.LightweightIndexer.Tests
                     Times.Once());
 
                 this.repository.Verify(
-                    r => r.GetLastAsync(cancellationToken),
+                    r => r.GetLatestsBlocksAsync(1, cancellationToken),
                     Times.Once());
 
                 this.repository.Verify(
-                    r => r.GetLastAsync(CancellationToken.None),
+                    r => r.GetLatestsBlocksAsync(1, CancellationToken.None),
                     Times.Exactly(3));
 
                 this.repository.Verify(
-                    r => r.RemoveLastAsync(default),
+                    r => r.RemoveLastBlockAsync(default),
                     Times.Exactly(3));
 
                 this.blockRemoving.Verify(
@@ -215,8 +217,8 @@ namespace Zsharp.LightweightIndexer.Tests
             {
                 // Arrange.
                 this.repository
-                    .Setup(r => r.GetLastAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((null, -1));
+                    .Setup(r => r.GetLatestsBlocksAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((Enumerable.Empty<Block>(), -1));
 
                 await this.subject.StartAsync();
 
@@ -229,7 +231,7 @@ namespace Zsharp.LightweightIndexer.Tests
                 Assert.Equal(0, result);
 
                 this.repository.Verify(
-                    r => r.GetLastAsync(cancellationToken),
+                    r => r.GetLatestsBlocksAsync(1, cancellationToken),
                     Times.Once());
 
                 this.logger.Verify(
@@ -252,8 +254,8 @@ namespace Zsharp.LightweightIndexer.Tests
                 var block = TestBlock.Regtest0;
 
                 this.repository
-                    .Setup(r => r.GetLastAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((block, 0));
+                    .Setup(r => r.GetLatestsBlocksAsync(1, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((new[] { block }, 0));
 
                 await this.subject.StartAsync();
 
@@ -266,7 +268,7 @@ namespace Zsharp.LightweightIndexer.Tests
                 Assert.Equal(1, result);
 
                 this.repository.Verify(
-                    r => r.GetLastAsync(cancellationToken),
+                    r => r.GetLatestsBlocksAsync(1, cancellationToken),
                     Times.Once());
 
                 this.logger.Verify(
@@ -287,8 +289,8 @@ namespace Zsharp.LightweightIndexer.Tests
             {
                 // Arrange.
                 this.repository
-                    .Setup(r => r.GetLastAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((null, -1));
+                    .Setup(r => r.GetLatestsBlocksAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((Enumerable.Empty<Block>(), -1));
 
                 await this.subject.StartAsync();
 
@@ -301,7 +303,7 @@ namespace Zsharp.LightweightIndexer.Tests
                 Assert.Equal(0, result);
 
                 this.repository.Verify(
-                    r => r.GetLastAsync(cancellationToken),
+                    r => r.GetLatestsBlocksAsync(1, cancellationToken),
                     Times.Once());
             });
         }
@@ -313,8 +315,8 @@ namespace Zsharp.LightweightIndexer.Tests
             {
                 // Arrange.
                 this.repository
-                    .Setup(r => r.GetLastAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((null, -1));
+                    .Setup(r => r.GetLatestsBlocksAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((Enumerable.Empty<Block>(), -1));
 
                 await this.subject.StartAsync();
 
@@ -327,7 +329,7 @@ namespace Zsharp.LightweightIndexer.Tests
 
                 // Assert.
                 this.repository.Verify(
-                    r => r.GetLastAsync(cancellationToken),
+                    r => r.GetLatestsBlocksAsync(1, cancellationToken),
                     Times.Once());
             });
         }
@@ -341,8 +343,8 @@ namespace Zsharp.LightweightIndexer.Tests
                 var block = TestBlock.Regtest0;
 
                 this.repository
-                    .Setup(r => r.GetLastAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((null, -1));
+                    .Setup(r => r.GetLatestsBlocksAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((Enumerable.Empty<Block>(), -1));
 
                 await this.subject.StartAsync();
 
@@ -355,7 +357,7 @@ namespace Zsharp.LightweightIndexer.Tests
                 Assert.Equal(1, result);
 
                 this.repository.Verify(
-                    r => r.GetLastAsync(cancellationToken),
+                    r => r.GetLatestsBlocksAsync(1, cancellationToken),
                     Times.Once());
 
                 this.logger.Verify(
@@ -368,7 +370,7 @@ namespace Zsharp.LightweightIndexer.Tests
                     Times.Once());
 
                 this.repository.Verify(
-                    r => r.AddAsync(block, 0, cancellationToken),
+                    r => r.AddBlockAsync(block, 0, cancellationToken),
                     Times.Once());
 
                 this.blockAdded.Verify(
@@ -384,8 +386,8 @@ namespace Zsharp.LightweightIndexer.Tests
             {
                 // Arrange.
                 this.repository
-                    .Setup(r => r.GetLastAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((TestBlock.Regtest0, 0));
+                    .Setup(r => r.GetLatestsBlocksAsync(1, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((new[] { TestBlock.Regtest0 }, 0));
 
                 await this.subject.StartAsync();
 
@@ -398,7 +400,7 @@ namespace Zsharp.LightweightIndexer.Tests
                 Assert.Equal(1, result);
 
                 this.repository.Verify(
-                    r => r.GetLastAsync(cancellationToken),
+                    r => r.GetLatestsBlocksAsync(1, cancellationToken),
                     Times.Once());
             });
         }
@@ -413,8 +415,8 @@ namespace Zsharp.LightweightIndexer.Tests
                 var next = TestBlock.Regtest2;
 
                 this.repository
-                    .Setup(r => r.GetLastAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((current, 0));
+                    .Setup(r => r.GetLatestsBlocksAsync(1, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((new[] { current }, 0));
 
                 await this.subject.StartAsync();
 
@@ -427,7 +429,7 @@ namespace Zsharp.LightweightIndexer.Tests
                 Assert.Equal(0, result);
 
                 this.repository.Verify(
-                    r => r.GetLastAsync(cancellationToken),
+                    r => r.GetLatestsBlocksAsync(1, cancellationToken),
                     Times.Once());
 
                 this.logger.Verify(
@@ -453,7 +455,7 @@ namespace Zsharp.LightweightIndexer.Tests
                     Times.Once());
 
                 this.repository.Verify(
-                    r => r.RemoveLastAsync(default),
+                    r => r.RemoveLastBlockAsync(default),
                     Times.Once());
             });
         }
@@ -465,8 +467,8 @@ namespace Zsharp.LightweightIndexer.Tests
             {
                 // Arrange.
                 this.repository
-                    .Setup(r => r.GetLastAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((TestBlock.Regtest0, 0));
+                    .Setup(r => r.GetLatestsBlocksAsync(1, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((new[] { TestBlock.Regtest0 }, 0));
 
                 await this.subject.StartAsync();
 
@@ -489,7 +491,7 @@ namespace Zsharp.LightweightIndexer.Tests
                     Times.Once());
 
                 this.repository.Verify(
-                    r => r.AddAsync(block, 1, cancellationToken),
+                    r => r.AddBlockAsync(block, 1, cancellationToken),
                     Times.Once());
 
                 this.blockAdded.Verify(

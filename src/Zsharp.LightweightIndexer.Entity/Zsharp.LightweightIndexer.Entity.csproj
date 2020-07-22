@@ -9,4 +9,11 @@
     <PackageReference Include="NBitcoin" Version="5.0.45" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Zsharp.LightweightIndexer\Zsharp.LightweightIndexer.csproj" />
+    <ProjectReference Include="..\Zsharp.Bitcoin\Zsharp.Bitcoin.csproj" />
+    <ProjectReference Include="..\Zsharp.Elysium\Zsharp.Elysium.csproj" />
+    <ProjectReference Include="..\Zsharp.Zcoin\Zsharp.Zcoin.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,6 +1,7 @@
 namespace Zsharp.LightweightIndexer
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
@@ -19,21 +20,21 @@ namespace Zsharp.LightweightIndexer
         {
             this.service.Logger?.LogInformation("Re-organize occurred on node side, starting re-organize at our side.");
 
-            var (block, height) = await this.service.Repository.GetLastAsync(cancellationToken);
+            var (blocks, height) = await this.service.Repository.GetLatestsBlocksAsync(1, cancellationToken);
 
             while (height >= start)
             {
-                await this.RemoveLastBlockAsync(block!, height);
+                await this.RemoveLastBlockAsync(blocks.Single(), height);
 
-                (block, height) = await this.service.Repository.GetLastAsync();
+                (blocks, height) = await this.service.Repository.GetLatestsBlocksAsync(1);
             }
         }
 
         public async Task<int> GetStartBlockAsync(CancellationToken cancellationToken = default)
         {
-            var (last, height) = await this.service.Repository.GetLastAsync(cancellationToken);
+            var (blocks, height) = await this.service.Repository.GetLatestsBlocksAsync(1, cancellationToken);
 
-            if (last == null)
+            if (!blocks.Any())
             {
                 this.service.Logger?.LogInformation(
                     "No any blocks at our side, starting synchronization from the begining.");
@@ -45,7 +46,7 @@ namespace Zsharp.LightweightIndexer
             this.service.Logger?.LogInformation(
                 "Our latest block is {Height}:{Hash}, starting synchronization from block {Next}.",
                 height,
-                last.GetHash(),
+                blocks.Single().GetHash(),
                 next);
 
             return next;
@@ -53,10 +54,10 @@ namespace Zsharp.LightweightIndexer
 
         public async Task<int> ProcessBlockAsync(Block block, int height, CancellationToken cancellationToken = default)
         {
-            var latest = await this.service.Repository.GetLastAsync(cancellationToken);
+            var latest = await this.service.Repository.GetLatestsBlocksAsync(1, cancellationToken);
 
             // Make sure the block is expected one.
-            if (latest.Block == null)
+            if (!latest.Blocks.Any())
             {
                 if (height != 0)
                 {
@@ -70,14 +71,14 @@ namespace Zsharp.LightweightIndexer
             }
             else
             {
-                var next = latest.Height + 1;
+                var next = latest.Highest + 1;
 
                 if (height != next)
                 {
                     return next;
                 }
 
-                if (block.Header.HashPrevBlock != latest.Block.GetHash())
+                if (block.Header.HashPrevBlock != latest.Blocks.Single().GetHash())
                 {
                     // Our latest block is not what expected (e.g. chain already switched) so we need to reload it.
                     this.service.Logger?.LogInformation(
@@ -86,9 +87,9 @@ namespace Zsharp.LightweightIndexer
                         block.GetHash(),
                         block.Header.HashPrevBlock);
 
-                    await this.RemoveLastBlockAsync(latest.Block, latest.Height, cancellationToken);
+                    await this.RemoveLastBlockAsync(latest.Blocks.Single(), latest.Highest, cancellationToken);
 
-                    return latest.Height;
+                    return latest.Highest;
                 }
             }
 
@@ -101,7 +102,7 @@ namespace Zsharp.LightweightIndexer
         {
             this.service.Logger?.LogInformation("Adding block {Height}:{Hash}.", height, block.GetHash());
 
-            await this.service.Repository.AddAsync(block, height, cancellationToken);
+            await this.service.Repository.AddBlockAsync(block, height, cancellationToken);
             await this.service.RaiseBlockAdded(block, height);
         }
 
@@ -110,7 +111,7 @@ namespace Zsharp.LightweightIndexer
             this.service.Logger?.LogInformation("Removing block {Height}:{Hash}.", height, block.GetHash());
 
             await this.service.RaiseBlockRemovingAsync(block, height, cancellationToken);
-            await this.service.Repository.RemoveLastAsync();
+            await this.service.Repository.RemoveLastBlockAsync();
         }
     }
 }

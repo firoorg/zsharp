@@ -4,6 +4,7 @@ namespace Zsharp.LightweightIndexer.Entity.Tests
     using NBitcoin;
     using Xunit;
     using Zsharp.Testing;
+    using Zsharp.Zcoin;
     using Block = Zsharp.LightweightIndexer.Entity.Block;
     using Transaction = Zsharp.LightweightIndexer.Entity.Transaction;
 
@@ -138,7 +139,7 @@ namespace Zsharp.LightweightIndexer.Entity.Tests
                 },
                 s => new BlockTransaction(s.BlockHash, s.Index, s.TransactionHash)
                 {
-                    Transaction = new Transaction(uint256.Zero, 0, 0),
+                    Transaction = new Transaction(uint256.Zero, TransactionType.Coinbase, 0, 0),
                 });
 
             Assert.DoesNotContain(false, tester);

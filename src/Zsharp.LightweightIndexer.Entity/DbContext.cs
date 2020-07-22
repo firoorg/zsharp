@@ -30,7 +30,7 @@ namespace Zsharp.LightweightIndexer.Entity
             builder.Property(b => b.Hash).IsRequired();
             builder.Property(b => b.Time).IsRequired();
             builder.Property(b => b.Version).IsRequired();
-            builder.Property(b => b.Target).IsRequired().HasConversion(Converters.TargetToInt32);
+            builder.Property(b => b.Target).IsRequired();
             builder.Property(b => b.Nonce).IsRequired();
             builder.Property(b => b.MerkleRoot).IsRequired();
 
@@ -40,9 +40,9 @@ namespace Zsharp.LightweightIndexer.Entity
 
         protected virtual void ConfigureBlockTransaction(EntityTypeBuilder<BlockTransaction> builder)
         {
-            builder.Property(t => t.BlockHash).IsRequired();
-            builder.Property(t => t.Index).IsRequired();
-            builder.Property(t => t.TransactionHash).IsRequired();
+            builder.Property(j => j.BlockHash).IsRequired();
+            builder.Property(j => j.Index).IsRequired();
+            builder.Property(j => j.TransactionHash).IsRequired();
 
             builder.HasKey(t => new { t.BlockHash, t.Index });
             builder.HasIndex(t => t.TransactionHash);
@@ -79,7 +79,7 @@ namespace Zsharp.LightweightIndexer.Entity
             builder.Property(i => i.Index).IsRequired();
             builder.Property(i => i.OutputHash).IsRequired();
             builder.Property(i => i.OutputIndex).IsRequired();
-            builder.Property(i => i.Script).IsRequired().HasConversion(Converters.ScriptToBytesConverter);
+            builder.Property(i => i.Script).IsRequired();
             builder.Property(i => i.Sequence).IsRequired();
 
             builder.HasKey(i => new { i.TransactionHash, i.Index });
@@ -110,7 +110,7 @@ namespace Zsharp.LightweightIndexer.Entity
         {
             builder.Property(o => o.TransactionHash).IsRequired();
             builder.Property(o => o.Index).IsRequired();
-            builder.Property(o => o.Script).IsRequired().HasConversion(Converters.ScriptToBytesConverter);
+            builder.Property(o => o.Script).IsRequired();
             builder.Property(o => o.Value).IsRequired();
 
             builder.HasKey(o => new { o.TransactionHash, o.Index });
@@ -124,9 +124,10 @@ namespace Zsharp.LightweightIndexer.Entity
         protected virtual void ConfigureTransaction(EntityTypeBuilder<Transaction> builder)
         {
             builder.Property(t => t.Hash).IsRequired();
+            builder.Property(t => t.Type).IsRequired();
             builder.Property(t => t.Version).IsRequired();
             builder.Property(t => t.LockTime).IsRequired();
-            builder.Property(t => t.Extra);
+            builder.Property(t => t.ExtraPayload);
 
             builder.HasKey(t => t.Hash);
         }

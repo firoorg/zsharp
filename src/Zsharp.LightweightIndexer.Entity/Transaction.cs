@@ -2,12 +2,14 @@ namespace Zsharp.LightweightIndexer.Entity
 {
     using System.Collections.Generic;
     using NBitcoin;
+    using Zsharp.Zcoin;
 
     public sealed class Transaction
     {
-        public Transaction(uint256 hash, int version, int lockTime)
+        public Transaction(uint256 hash, TransactionType type, short version, int lockTime)
         {
             this.Hash = hash;
+            this.Type = type;
             this.Version = version;
             this.LockTime = lockTime;
             this.Blocks = new SortedSet<BlockTransaction>();
@@ -19,7 +21,7 @@ namespace Zsharp.LightweightIndexer.Entity
 
         public ElysiumTransaction? Elysium { get; set; }
 
-        public byte[]? Extra { get; set; }
+        public byte[]? ExtraPayload { get; set; }
 
         public uint256 Hash { get; }
 
@@ -29,6 +31,8 @@ namespace Zsharp.LightweightIndexer.Entity
 
         public SortedSet<Output> Outputs { get; set; }
 
-        public int Version { get; }
+        public TransactionType Type { get; }
+
+        public short Version { get; }
     }
 }

@@ -31,14 +31,6 @@ namespace Zsharp.LightweightIndexer.Entity.Tests
         }
 
         [Fact]
-        public void Constructor_WithNegativeOutputIndex_ShouldThrow()
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(
-                "outputIndex",
-                () => new Input(this.transaction, 0, this.spend, -1, this.script, this.sequence));
-        }
-
-        [Fact]
         public void Constructor_WhenSucceeded_ShouldInitializeProperties()
         {
             Assert.Equal(1, this.subject.Index);

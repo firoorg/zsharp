@@ -18,11 +18,6 @@ namespace Zsharp.LightweightIndexer.Entity
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            if (outputIndex < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(outputIndex));
-            }
-
             this.TransactionHash = transactionHash;
             this.Index = index;
             this.OutputHash = outputHash;
