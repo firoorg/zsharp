@@ -1,6 +1,7 @@
 namespace Zsharp.LightweightIndexer.Postgres.Tests
 {
     using Microsoft.Extensions.DependencyInjection;
+    using Zsharp.Entity;
     using Zsharp.LightweightIndexer.Entity;
 
     public sealed class BlockRepositoryTests : Zsharp.LightweightIndexer.Entity.Tests.BlockRepositoryTests
@@ -13,7 +14,7 @@ namespace Zsharp.LightweightIndexer.Postgres.Tests
         }
 
         private BlockRepositoryTests(ServiceProvider services)
-            : base(services.GetRequiredService<IDbContextFactory>())
+            : base(services.GetRequiredService<IDbContextFactory<DbContext>>())
         {
             this.services = services;
         }

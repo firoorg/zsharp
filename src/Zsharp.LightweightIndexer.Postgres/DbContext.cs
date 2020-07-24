@@ -2,6 +2,7 @@ namespace Zsharp.LightweightIndexer.Postgres
 {
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
+    using Zsharp.Entity;
     using Zsharp.LightweightIndexer.Entity;
 
     public sealed class DbContext : Zsharp.LightweightIndexer.Entity.DbContext
@@ -22,14 +23,14 @@ namespace Zsharp.LightweightIndexer.Postgres
         {
             base.ConfigureInput(builder);
 
-            builder.Property(i => i.Script).HasConversion(Converters.ScriptToBytesConverter);
+            builder.Property(i => i.Script).HasConversion(Converters.ScriptToBytes);
         }
 
         protected override void ConfigureOutput(EntityTypeBuilder<Output> builder)
         {
             base.ConfigureOutput(builder);
 
-            builder.Property(o => o.Script).HasConversion(Converters.ScriptToBytesConverter);
+            builder.Property(o => o.Script).HasConversion(Converters.ScriptToBytes);
         }
     }
 }

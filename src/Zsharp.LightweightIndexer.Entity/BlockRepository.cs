@@ -12,14 +12,18 @@ namespace Zsharp.LightweightIndexer.Entity
     using NBitcoin;
     using Zsharp.Bitcoin;
     using Zsharp.Elysium;
+    using Zsharp.Entity;
 
     public sealed class BlockRepository : Zsharp.LightweightIndexer.IBlockRepository
     {
         readonly Network network;
-        readonly IDbContextFactory db;
+        readonly IDbContextFactory<DbContext> db;
         readonly ITransactionSerializer elysiumSerializer;
 
-        public BlockRepository(Network network, IDbContextFactory db, ITransactionSerializer elysiumSerializer)
+        public BlockRepository(
+            Network network,
+            IDbContextFactory<DbContext> db,
+            ITransactionSerializer elysiumSerializer)
         {
             this.network = network;
             this.db = db;
@@ -36,8 +40,10 @@ namespace Zsharp.LightweightIndexer.Entity
                 throw new ArgumentOutOfRangeException(nameof(height));
             }
 
-            await using (var db = await this.db.CreateAsync(IsolationLevel.Serializable, cancellationToken))
+            await using (var db = await this.db.CreateAsync(cancellationToken))
             {
+                await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
                 var entity = this.ToEntity(block, height);
 
                 // Do not insert transactions that already exists.
@@ -66,8 +72,10 @@ namespace Zsharp.LightweightIndexer.Entity
             uint256 hash,
             CancellationToken cancellationToken = default)
         {
-            await using (var db = await this.db.CreateAsync(IsolationLevel.RepeatableRead, cancellationToken))
+            await using (var db = await this.db.CreateAsync(cancellationToken))
             {
+                await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
+
                 var block = await db.Blocks.SingleOrDefaultAsync(b => b.Hash == hash, cancellationToken);
 
                 if (block == null)
@@ -86,8 +94,10 @@ namespace Zsharp.LightweightIndexer.Entity
                 throw new ArgumentOutOfRangeException(nameof(height));
             }
 
-            await using (var db = await this.db.CreateAsync(IsolationLevel.RepeatableRead, cancellationToken))
+            await using (var db = await this.db.CreateAsync(cancellationToken))
             {
+                await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
+
                 var block = await db.Blocks.SingleOrDefaultAsync(b => b.Height == height, cancellationToken);
 
                 if (block == null)
@@ -108,8 +118,10 @@ namespace Zsharp.LightweightIndexer.Entity
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
 
-            await using (var db = await this.db.CreateAsync(IsolationLevel.RepeatableRead, cancellationToken))
+            await using (var db = await this.db.CreateAsync(cancellationToken))
             {
+                await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
+
                 var blocks = await db.Blocks
                     .OrderByDescending(b => b.Height)
                     .Take(count)
@@ -129,8 +141,10 @@ namespace Zsharp.LightweightIndexer.Entity
             uint256 hash,
             CancellationToken cancellationToken = default)
         {
-            await using (var db = await this.db.CreateAsync(IsolationLevel.RepeatableRead, cancellationToken))
+            await using (var db = await this.db.CreateAsync(cancellationToken))
             {
+                await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
+
                 var tx = await db.Transactions.SingleOrDefaultAsync(t => t.Hash == hash, cancellationToken);
 
                 if (tx == null)
@@ -144,8 +158,10 @@ namespace Zsharp.LightweightIndexer.Entity
 
         public async ValueTask RemoveLastBlockAsync(CancellationToken cancellationToken = default)
         {
-            await using (var db = await this.db.CreateAsync(IsolationLevel.Serializable, cancellationToken))
+            await using (var db = await this.db.CreateAsync(cancellationToken))
             {
+                await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
                 // Remove block.
                 var block = await db.Blocks
                     .Include(b => b.Transactions)

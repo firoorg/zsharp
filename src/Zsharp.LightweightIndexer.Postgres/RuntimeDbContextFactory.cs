@@ -1,14 +1,14 @@
 namespace Zsharp.LightweightIndexer.Postgres
 {
     using System;
-    using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Options;
-    using Zsharp.LightweightIndexer.Entity;
+    using Zsharp.Entity;
 
-    sealed class RuntimeDbContextFactory : DbContextFactory, IDbContextFactory
+    sealed class RuntimeDbContextFactory :
+        DbContextFactory,
+        IDbContextFactory<Zsharp.LightweightIndexer.Entity.DbContext>
     {
         readonly DbContextOptions options;
 
@@ -22,26 +22,9 @@ namespace Zsharp.LightweightIndexer.Postgres
 
         protected override IServiceProvider ServiceProvider { get; }
 
-        public async ValueTask<Entity.DbContext> CreateAsync(
-            IsolationLevel? isolation = null,
-            CancellationToken cancellationToken = default)
+        public async ValueTask<Entity.DbContext> CreateAsync(CancellationToken cancellationToken = default)
         {
-            var context = await this.CreateDbContextAsync(cancellationToken);
-
-            try
-            {
-                if (isolation != null)
-                {
-                    await context.Database.BeginTransactionAsync(isolation.Value, cancellationToken);
-                }
-            }
-            catch
-            {
-                await context.DisposeAsync();
-                throw;
-            }
-
-            return context;
+            return await this.CreateDbContextAsync(cancellationToken);
         }
     }
 }

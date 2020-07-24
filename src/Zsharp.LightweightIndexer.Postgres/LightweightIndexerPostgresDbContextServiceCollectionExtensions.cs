@@ -3,8 +3,8 @@ namespace Microsoft.Extensions.DependencyInjection
     using System;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Storage;
-    using Zsharp.LightweightIndexer.Entity;
     using Zsharp.LightweightIndexer.Postgres;
+    using IDbContextFactory = Zsharp.Entity.IDbContextFactory<Zsharp.LightweightIndexer.Entity.DbContext>;
 
     public static class LightweightIndexerPostgresDbContextServiceCollectionExtensions
     {

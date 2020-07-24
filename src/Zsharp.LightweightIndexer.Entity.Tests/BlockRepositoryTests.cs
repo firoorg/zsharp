@@ -10,13 +10,15 @@ namespace Zsharp.LightweightIndexer.Entity.Tests
     using Zsharp.Elysium;
     using Zsharp.Elysium.Transactions;
     using Zsharp.Elysium.TransactionSerializers;
+    using Zsharp.Entity;
     using Zsharp.Testing;
     using Zsharp.Zcoin;
+    using DbContext = Zsharp.LightweightIndexer.Entity.DbContext;
 
     public class BlockRepositoryTests : IDisposable
     {
         readonly Network network;
-        readonly IDbContextFactory db;
+        readonly IDbContextFactory<DbContext> db;
         readonly BlockRepository subject;
 
         public BlockRepositoryTests()
@@ -24,7 +26,7 @@ namespace Zsharp.LightweightIndexer.Entity.Tests
         {
         }
 
-        protected BlockRepositoryTests(IDbContextFactory db)
+        protected BlockRepositoryTests(IDbContextFactory<DbContext> db)
         {
             try
             {
