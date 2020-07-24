@@ -7,7 +7,7 @@ namespace Zsharp.LightweightIndexer.Entity
     public interface IDbContextFactory
     {
         ValueTask<DbContext> CreateAsync(
-            IsolationLevel? isolation = IsolationLevel.Unspecified,
+            IsolationLevel? isolation = null,
             CancellationToken cancellationToken = default);
     }
 }

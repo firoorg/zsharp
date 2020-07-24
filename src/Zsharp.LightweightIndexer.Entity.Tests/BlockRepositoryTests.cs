@@ -40,6 +40,11 @@ namespace Zsharp.LightweightIndexer.Entity.Tests
                             new CreateManagedPropertySerializer(),
                             new SimpleSendSerializer(),
                         }));
+
+                using (var context = db.CreateAsync().AsTask().Result)
+                {
+                    context.Database.EnsureCreated();
+                }
             }
             catch
             {
@@ -53,6 +58,18 @@ namespace Zsharp.LightweightIndexer.Entity.Tests
 
         public void Dispose()
         {
+            this.Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            using (var db = this.db.CreateAsync().AsTask().Result)
+            {
+                db.Blocks.RemoveRange(db.Blocks);
+                db.Transactions.RemoveRange(db.Transactions);
+                db.SaveChanges();
+            }
+
             if (this.db is IDisposable d)
             {
                 d.Dispose();

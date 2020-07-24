@@ -32,21 +32,24 @@ namespace Zsharp.LightweightIndexer.Entity.Tests
                 }
 
                 this.connection = new SqliteConnection("DataSource=:memory:");
-                this.connection.Open();
             }
             catch
             {
-                this.connection?.Dispose();
                 this.logger?.Dispose();
                 throw;
             }
         }
 
         public async ValueTask<DbContext> CreateAsync(
-            IsolationLevel? isolation = IsolationLevel.Unspecified,
+            IsolationLevel? isolation = null,
             CancellationToken cancellationToken = default)
         {
             var builder = new DbContextOptionsBuilder<DbContext>();
+
+            if (this.connection.State == ConnectionState.Closed)
+            {
+                await this.connection.OpenAsync(cancellationToken);
+            }
 
             builder.EnableDetailedErrors();
             builder.EnableSensitiveDataLogging();
@@ -57,8 +60,6 @@ namespace Zsharp.LightweightIndexer.Entity.Tests
 
             try
             {
-                context.Database.EnsureCreated();
-
                 if (isolation != null)
                 {
                     await context.Database.BeginTransactionAsync(isolation.Value, cancellationToken);
