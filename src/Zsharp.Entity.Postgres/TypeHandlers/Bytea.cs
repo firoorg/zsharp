@@ -1,4 +1,4 @@
-namespace Zsharp.LightweightIndexer.Postgres.TypeHandlers
+namespace Zsharp.Entity.Postgres.TypeHandlers
 {
     using System.Threading.Tasks;
     using NBitcoin;
@@ -7,7 +7,7 @@ namespace Zsharp.LightweightIndexer.Postgres.TypeHandlers
     using Npgsql.PostgresTypes;
     using Npgsql.TypeHandling;
 
-    sealed class Bytea : Npgsql.TypeHandlers.ByteaHandler, INpgsqlTypeHandler<uint256>
+    public sealed class Bytea : Npgsql.TypeHandlers.ByteaHandler, INpgsqlTypeHandler<uint256>
     {
         public Bytea(PostgresType postgresType)
             : base(postgresType)

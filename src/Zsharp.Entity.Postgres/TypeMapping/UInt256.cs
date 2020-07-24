@@ -1,4 +1,4 @@
-namespace Zsharp.LightweightIndexer.Postgres.TypeMapping
+namespace Zsharp.Entity.Postgres.TypeMapping
 {
     using System.Linq.Expressions;
     using System.Reflection;
@@ -8,7 +8,7 @@ namespace Zsharp.LightweightIndexer.Postgres.TypeMapping
     using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
     using NpgsqlTypes;
 
-    sealed class UInt256 : NpgsqlTypeMapping
+    public sealed class UInt256 : NpgsqlTypeMapping
     {
         public const NpgsqlDbType DatabaseType = NpgsqlDbType.Bytea;
 

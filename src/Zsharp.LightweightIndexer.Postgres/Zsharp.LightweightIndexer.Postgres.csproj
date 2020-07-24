@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Zsharp.LightweightIndexer.Entity\Zsharp.LightweightIndexer.Entity.csproj" />
+    <ProjectReference Include="..\Zsharp.Entity.Postgres\Zsharp.Entity.Postgres.csproj" />
   </ItemGroup>
 
   <ItemGroup>

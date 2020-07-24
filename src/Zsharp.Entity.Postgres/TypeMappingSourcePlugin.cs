@@ -1,9 +1,9 @@
-namespace Zsharp.LightweightIndexer.Postgres
+namespace Zsharp.Entity.Postgres
 {
     using Microsoft.EntityFrameworkCore.Storage;
     using NBitcoin;
 
-    sealed class TypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
+    public sealed class TypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
     {
         static readonly RelationalTypeMapping UInt256Mapping = new TypeMapping.UInt256();
 
