@@ -51,6 +51,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zsharp.Entity.Postgres", "Z
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zsharp.Entity.Postgres.Tests", "Zsharp.Entity.Postgres.Tests\Zsharp.Entity.Postgres.Tests.csproj", "{AB5027AB-1AFB-434A-AEF6-00C91EDAF0C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zsharp.ServiceModel.AspNetCore", "Zsharp.ServiceModel.AspNetCore\Zsharp.ServiceModel.AspNetCore.csproj", "{77B99DB4-D173-4C47-AA3B-C620478B7E6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zsharp.ServiceModel.AspNetCore.Tests", "Zsharp.ServiceModel.AspNetCore.Tests\Zsharp.ServiceModel.AspNetCore.Tests.csproj", "{F6899318-8297-4BEC-93F2-FBF9E021A739}"
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -352,5 +356,29 @@ Global
 		{AB5027AB-1AFB-434A-AEF6-00C91EDAF0C1}.Release|x64.Build.0 = Release|Any CPU
 		{AB5027AB-1AFB-434A-AEF6-00C91EDAF0C1}.Release|x86.ActiveCfg = Release|Any CPU
 		{AB5027AB-1AFB-434A-AEF6-00C91EDAF0C1}.Release|x86.Build.0 = Release|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Debug|x64.Build.0 = Debug|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Debug|x86.Build.0 = Debug|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Release|x64.ActiveCfg = Release|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Release|x64.Build.0 = Release|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Release|x86.ActiveCfg = Release|Any CPU
+		{77B99DB4-D173-4C47-AA3B-C620478B7E6C}.Release|x86.Build.0 = Release|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Debug|x64.Build.0 = Debug|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Debug|x86.Build.0 = Debug|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Release|x64.ActiveCfg = Release|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Release|x64.Build.0 = Release|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Release|x86.ActiveCfg = Release|Any CPU
+		{F6899318-8297-4BEC-93F2-FBF9E021A739}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
