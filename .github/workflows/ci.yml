@@ -36,7 +36,7 @@ jobs:
         Get-ChildItem -Path $Env:TEST_RESULTS -Filter *.coverage -Recurse -File | ForEach-Object {
           $name = $_.Directory.Name
           $input = $_.FullName
-          $output = "$Env:COVERAGE_REPORTS\$name.coveragexml"
+          $output = "$Env:COVERAGE_REPORTS\$name.codecov.coveragexml"
           $args = @("analyze", "/output:$output", $input)
 
           $transform = Start-Process -FilePath $tool -ArgumentList $args -NoNewWindow -PassThru -Wait
@@ -50,6 +50,6 @@ jobs:
     - name: Upload Code Coverage
       uses: codecov/codecov-action@v1
       with:
-        file: ${{ env.COVERAGE_REPORTS }}/*.coveragexml
+        directory: ${{ env.COVERAGE_REPORTS }}
         flags: unittests
         fail_ci_if_error: true
