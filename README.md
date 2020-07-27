@@ -9,6 +9,13 @@ This is a high-quality .NET library for working with Zcoin. Almost all of the co
 
 Most of the code was migrated from [ZTM](https://github.com/zcoinofficial/ztm).
 
+## Examples
+### Parsing block
+
+```csharp
+var block = Block.Parse("HEX", Networks.Default.Mainnet);
+```
+
 ## Development
 ### Requirements
 
