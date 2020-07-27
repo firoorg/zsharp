@@ -1,0 +1,52 @@
+name: Continuous Integration
+on: [push, pull_request]
+jobs:
+  build:
+    name: Build
+    runs-on: windows-2019
+    env:
+      SOLUTION: src\Zsharp.sln
+      TEST_RESULTS: test-results
+      COVERAGE_REPORTS: coverage-reports
+    steps:
+    - name: Checkout Source
+      uses: actions/checkout@v2
+    - name: Set Up .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
+    - name: Set Up PostgreSQL
+      shell: cmd
+      run: choco.exe install postgresql12 --params /Password:postgres --no-progress
+    - name: Build
+      shell: cmd
+      run: dotnet.exe build "%SOLUTION%"
+    - name: Run Tests
+      shell: cmd
+      run: dotnet.exe test --no-build -r "%TEST_RESULTS%" --collect "Code Coverage" "%SOLUTION%"
+    - name: Transform Test Results
+      run: |
+        $tool = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe"
+
+        New-Item -Path $Env:COVERAGE_REPORTS -ItemType Directory | Out-Null
+
+        Get-ChildItem -Path $Env:TEST_RESULTS -Filter *.coverage -Recurse -File | ForEach-Object {
+          $name = $_.Directory.Name
+          $input = $_.FullName
+          $output = "$Env:COVERAGE_REPORTS\$name.coveragexml"
+          $args = @("analyze", "/output:$output", $input)
+
+          $transform = Start-Process -FilePath $tool -ArgumentList $args -NoNewWindow -PassThru -Wait
+
+          if ($transform.ExitCode -ne 0) {
+            exit $transform.ExitCode
+          }
+
+          Write-Host -Object "$input > $output"
+        }
+    - name: Upload Code Coverage
+      uses: codecov/codecov-action@v1
+      with:
+        directory: ${{ env.COVERAGE_REPORTS }}
+        flags: unittests
+        fail_ci_if_error: true
