@@ -50,6 +50,6 @@ jobs:
     - name: Upload Code Coverage
       uses: codecov/codecov-action@v1
       with:
-        directory: ${{ env.COVERAGE_REPORTS }}
+        file: ${{ env.COVERAGE_REPORTS }}/*.coveragexml
         flags: unittests
         fail_ci_if_error: true
