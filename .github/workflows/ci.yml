@@ -15,14 +15,15 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '3.1.x'
-    - name: Set Up PostgreSQL
-      shell: cmd
-      run: choco.exe install postgresql12 --params /Password:postgres --no-progress
+    - name: Start PostgreSQL
+      run: Start-Service -Name postgresql-x64-12
     - name: Build
       shell: cmd
       run: dotnet.exe build "%SOLUTION%"
     - name: Run Tests
       shell: cmd
+      env:
+        ZSHARP_POSTGRES_CONNECTIONSTRING: Host=127.0.0.1;Database=postgres;Username=postgres;Password=root
       run: dotnet.exe test --no-build -r "%TEST_RESULTS%" --collect "Code Coverage" "%SOLUTION%"
     - name: Transform Test Results
       run: |
