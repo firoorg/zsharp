@@ -1,4 +1,5 @@
 # Zsharp
+[![codecov](https://codecov.io/gh/zcoinofficial/zsharp/branch/master/graph/badge.svg)](https://codecov.io/gh/zcoinofficial/zsharp)
 
 This is a high-quality .NET library for working with Zcoin. Almost all of the code have test coverage. Some of available features are:
 
