@@ -7,6 +7,9 @@
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodeAnalysis.ruleset</CodeAnalysisRuleSet>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>ultimaweapon;thebevrishot</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/zcoinofficial/zsharp</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsPackable)'=='true'">

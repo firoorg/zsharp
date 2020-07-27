@@ -34,3 +34,12 @@ Then execute:
 ```sh
 dotnet test src/Zsharp.sln
 ```
+
+### Updating version
+
+The right way to update `Version` in the `.csproj` file on each project is:
+
+1. Increase the version number **only** on the first commit that introduce changes to that project since the latest release.
+2. Follow [SemVer](https://semver.org/) for how to increase version number.
+
+With this way we will always know which project need to publish a new version when we are going to release by comparing the version in the repository against the latest version that was published. Another benefits is we don't need to publish the project that don't have any changes since the latest release.
