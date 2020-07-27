@@ -3,6 +3,9 @@ namespace Zsharp.Entity
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using NBitcoin;
 
+    /// <summary>
+    /// Provides <see cref="ValueConverter"/> for common types.
+    /// </summary>
     /// <remarks>
     /// All of converters should not used on any columns that need to create an index on it, including primary key; due
     /// to it will cause Entity Framework to do any operations that involved on the those indexes on the client side.
@@ -10,7 +13,7 @@ namespace Zsharp.Entity
     ///
     /// The right way is creating a custom type mapper for the database provider instead. With this way Entity Framework
     /// can utilize indexes on the server side. You can see here for the starting point to create a custom type mapper:
-    /// https://stackoverflow.com/a/58591235/1829232
+    /// https://stackoverflow.com/a/58591235/1829232.
     /// </remarks>
     public static class Converters
     {

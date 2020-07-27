@@ -29,6 +29,12 @@ namespace Zsharp.Testing
         /// <summary>
         /// Create a new instance of <see cref="NodeBuilder"/> for the specified test suite.
         /// </summary>
+        /// <param name="suite">
+        /// The test suite of the test case.
+        /// </param>
+        /// <returns>
+        /// A <see cref="NodeBuilder"/> that ready to start Zcoin Daemon.
+        /// </returns>
         /// <remarks>
         /// This method is not thread-safe.
         /// </remarks>

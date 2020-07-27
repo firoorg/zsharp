@@ -62,6 +62,9 @@ namespace Zsharp.Elysium
         /// The string to convert. The value will be treated as divisible if it contains a period; otherwise it will be
         /// treated as indivisible.
         /// </param>
+        /// <returns>
+        /// A <see cref="TokenAmount"/> that represent the same value as <paramref name="s"/>.
+        /// </returns>
         /// <exception cref="ArgumentException">
         /// <paramref name="s"/> is <c>null</c>.
         /// </exception>
