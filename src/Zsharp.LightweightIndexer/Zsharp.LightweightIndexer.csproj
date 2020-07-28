@@ -2,13 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Description>Lightweight Zcoin block indexer for implementing any application that want full access to the data on the blockchain.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AsyncEvent" Version="0.2.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="3.1.6" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.6" />
     <PackageReference Include="NBitcoin" Version="5.0.44" />
     <PackageReference Include="NetMQ" Version="4.0.0.207" />
   </ItemGroup>
