@@ -10,6 +10,10 @@ This is a high-quality .NET library for working with Zcoin. Almost all of the co
 
 Most of the code was migrated from [ZTM](https://github.com/zcoinofficial/ztm).
 
+## Installation
+
+All of Zsharp packages can be install from [NuGet](https://www.nuget.org/packages?q=Zsharp).
+
 ## Examples
 ### Parsing block
 
