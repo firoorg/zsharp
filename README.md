@@ -21,6 +21,69 @@ All of Zsharp packages can be install from [NuGet](https://www.nuget.org/package
 var block = Block.Parse("HEX", Networks.Default.Mainnet);
 ```
 
+### Block indexer
+
+```csharp
+void ConfigureServices(IServiceCollection services)
+{
+    // Application Services.
+    services.AddHostedService<DatabaseMigrator>();
+
+    // Zsharp Services.
+    services.AddSingleton<IServiceExceptionHandler, ServiceExceptionLogger>();
+    services.AddZcoin(NetworkType.Mainnet);
+    services.AddElysiumSerializer();
+    services.AddZcoinRpcClient(options =>
+    {
+        options.ServerUrl = new Uri("http://127.0.0.1:8888");
+        options.Credential = RPCCredentialString.Parse("rpcuser:rpcpassword");
+    });
+    services.AddLightweightIndexer(options =>
+    {
+        options.BlockPublisherAddress = "tcp://127.0.0.1:ZMQPORT";
+    });
+    services.AddLightweightIndexerEntityRepository();
+    services.AddLightweightIndexerPostgresDbContext(options =>
+    {
+        options.ConnectionString = "Host=127.0.0.1;Database=postgres;Username=postgres;Password=postgres";
+    });
+}
+```
+
+```csharp
+class DatabaseMigrator : IHostedService
+{
+    readonly ILogger logger;
+    readonly IDbContextFactory<Zsharp.LightweightIndexer.Entity.DbContext> chain;
+
+    public DatabaseMigrator(
+        ILogger<DatabaseMigrator> logger,
+        IDbContextFactory<Zsharp.LightweightIndexer.Entity.DbContext> chain)
+    {
+        this.logger = logger;
+        this.chain = chain;
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        // Blockchain.
+        this.logger.LogInformation("Migrating blockchain database.");
+
+        await using (var db = await this.chain.CreateAsync(cancellationToken))
+        {
+            await db.Database.MigrateAsync(cancellationToken);
+        }
+
+        this.logger.LogInformation("All database migrations completed successfully.");
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+}
+```
+
 ## Development
 ### Requirements
 
